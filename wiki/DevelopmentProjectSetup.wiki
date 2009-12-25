@@ -15,7 +15,7 @@ If you don't have them, then get following libraries:
 = Setup details =
 
 == Ogre ==
-Just install SDK and configure Ogre Project Wizard, then generate "Standard Ogre Application" with Own framework, post-build copy and CEGUI options checked.
+Just install SDK and configure [http://sourceforge.net/project/showfiles.php?group_id=168190 Ogre Project Wizard], then generate "Standard Ogre Application" with "Own framework", "post-build copy" and "CEGUI" options checked.
 
 == FMOD ==
 Download, install and add to Visual C++ Directories (add api/inc/ and api/lib to their proper places). Link against fmodexL_vc.lib (Debug) / fmodex_vc.lib (Release).
