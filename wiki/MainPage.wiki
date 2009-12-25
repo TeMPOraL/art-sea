@@ -1,0 +1,3 @@
+#summary "Welcome screen" of artSea project Wiki
+
+= artSea Wiki =
