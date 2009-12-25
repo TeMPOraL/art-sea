@@ -1,0 +1,25 @@
+#summary A page to store interesting and important links.
+
+= Reference materials =
+A place to store all useful stuff we come across.
+
+= Programming =
+
+== General ==
+  * [http://www.gamedev.net/reference/articles/article1583.asp Some tips about static linkage]
+
+== Ogre ==
+  * [http://www.ogre3d.org/wiki/index.php/SceneManagersFAQ Scene Managers FAQ]
+  * [http://www.ogre3d.org/wiki/index.php/Initial_Mouse_Position_With_OIS_and_CEGUI Fixing mouse input in CEGUI/OIS]
+  * [http://www.ogre3d.org/wiki/index.php/Using_OIS#Important_Notes Important notes about OIS]
+
+== Hydrax ==
+  * [http://www.ogre3d.org/addonforums/viewtopic.php?f=20&t=9527 Hydrax performance issues #1]
+  * [http://www.ogre3d.org/addonforums/viewtopic.php?f=20&t=8433 Hydrax performance issues #2]
+
+= Free resources =
+== Models ==
+  * http://www.lfgrafix.com/ - free models we might use.
+
+= Pretty pictures =
+(To be filled - don't have bandwidth to do it now)
