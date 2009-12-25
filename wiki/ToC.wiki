@@ -1,3 +1,11 @@
 #summary Default Wiki Table-of-Contents.
 
-= Table of contents =
+== artSea ==
+*Project status*: Under development, nothing to show yet.
+
+
+=== Design ===
+To be continued...
+
+=== Implementation ===
+[DevelopmentProjectSetup Setting up artSea project]
