@@ -22,13 +22,19 @@ LGPL like the rest of the OGRE engine.
 
 
 #include "BaseApplication.h"
+
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
 #include "../res/resource.h"
 #endif
+
 #include <CEGUI.h>
 #include <CEGUISystem.h>
 #include <CEGUISchemeManager.h>
 #include <OgreCEGUIRenderer.h>
+
+//#include <Hydrax/Hydrax.h>
+
+#include <TwOgre.h>
 
 const char* ARTSEA_LOG_FILE_NAME = "artSea.log";
 
@@ -42,9 +48,16 @@ public:
 protected:
 	//overloads from BaseApplication
 	virtual void createScene(void);
+	virtual bool frameStarted(FrameEvent& evt);
 	virtual bool frameRenderingQueued(const FrameEvent& evt);
 	virtual bool setup();
 	virtual void chooseSceneManager(void);
+
+	virtual bool keyPressed( const OIS::KeyEvent &arg );
+	virtual bool keyReleased( const OIS::KeyEvent &arg );
+	virtual bool mouseMoved( const OIS::MouseEvent &arg );
+	virtual bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
+	virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 
 protected:
 
@@ -66,6 +79,18 @@ protected:
 							//this if a single simulation update always took more than fixedStepRate seconds,
 							//then we would have a massive and fatal buildup of simulation updates, leaving no
 							//time for rendering
+
+//	Hydrax::Hydrax* hydraxModule;	//module for realistic rendering of underwater environment
+
+	TwOgre::WindowManager *tweakWindowManager;
+	TwOgre::Window *tweakTestWindow;
+
+	//AntTweakBar testing
+	TwOgre::ColorVariable *mWindowColor;
+	TwOgre::IntegerVariable *mWindowPosX, *mWindowPosY;
+	TwOgre::StringVariable *mWindowName;
+
+
 };
 
 
