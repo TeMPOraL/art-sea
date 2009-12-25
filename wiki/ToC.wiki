@@ -1,6 +1,6 @@
 #summary Default Wiki Table-of-Contents.
 
-== artSea ==
+== [MainPage artSea] ==
 *Project status*: Under development, nothing to show yet.
 
 
