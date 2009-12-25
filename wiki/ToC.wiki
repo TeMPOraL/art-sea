@@ -4,8 +4,8 @@
 *Project status*: Under development, nothing to show yet.
 
 
-=== Design ===
-To be continued...
+Design
+   To be continued...
 
-=== Implementation ===
-[DevelopmentProjectSetup Setting up artSea project]
+Implementation
+   [DevelopmentProjectSetup Setting up artSea project]
