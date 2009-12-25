@@ -1,0 +1,3 @@
+#summary Default Wiki Table-of-Contents.
+
+= Table of contents =
