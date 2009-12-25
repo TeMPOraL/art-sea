@@ -29,6 +29,10 @@ LGPL like the rest of the OGRE engine.
 //* Even more comments
 //* Hydrax
 
+//#include <Hydrax/Hydrax.h>
+//#include <Hydrax/Noise/Perlin/Perlin.h>
+//#include <Hydrax/Modules/ProjectedGrid/ProjectedGrid.h>
+
 #include "artSea.h"
 
 #include "Debug.h"
@@ -50,11 +54,35 @@ artSeaApp::artSeaApp(void)
 //-------------------------------------------------------------------------------------
 artSeaApp::~artSeaApp(void)
 {
+//	if(hydraxModule)
+//	{
+//		delete hydraxModule;
+//	}
+
+	if(tweakWindowManager)
+	{
+		delete tweakWindowManager;
+	}
 }
 
 //================================================================
 // Simulation update stuff
 //================================================================
+bool artSeaApp::frameStarted(FrameEvent& evt)
+{
+	//call superclass function
+	bool result = BaseApplication::frameStarted(evt);
+
+//	hydraxModule->update(evt.timeSinceLastFrame);
+
+	// Update values from Window 2
+	tweakTestWindow->setColor(mWindowColor->getColorValue());
+	tweakTestWindow->setPosition(Ogre::Vector2(mWindowPosX->getIntegerValue(), mWindowPosY->getIntegerValue()));
+	tweakTestWindow->setTitle(mWindowName->getStringValue());
+
+	return (result && true);
+}
+
 bool artSeaApp::frameRenderingQueued(const FrameEvent& evt)
 {
 	requestSimulationStateUpdate(evt.timeSinceLastFrame);
@@ -139,6 +167,39 @@ void artSeaApp::createScene(void)
 	// Create a light
 	Light* l = mSceneMgr->createLight("MainLight");
 	l->setPosition(20,80,50);
+
+//	hydraxModule = new Hydrax::Hydrax(mSceneMgr, mCamera, mWindow->getViewport(0));
+
+//	Hydrax::Module::ProjectedGrid* mModule =
+//						new Hydrax::Module::ProjectedGrid(	hydraxModule,
+//															new Hydrax::Noise::Perlin(),
+//															Ogre::Plane(Ogre::Vector3(0, 1, 0), Ogre::Vector3(0, 0, 0)),
+//															Hydrax::MaterialManager::NM_VERTEX,
+//															Hydrax::Module::ProjectedGrid::Options() );
+//
+//	hydraxModule->setModule(static_cast<Hydrax::Module::Module*>(mModule));
+
+//	hydraxModule->loadCfg("HydraxDemo.hdx");
+
+	// Create water
+	//hydraxModule->create();
+
+//	hydraxModule->setSunPosition(Ogre::Vector3(0,10000,90000));
+//	hydraxModule->setSunColor(Ogre::Vector3(1,0.6,0.4));
+
+	tweakWindowManager = new TwOgre::WindowManager(mWindow, mSceneMgr);
+
+	tweakTestWindow = tweakWindowManager->createWindow("Test Window", "TwOgreGui Test", Ogre::ColourValue(0.0, 0.0, 1.0, 0.7));
+	tweakTestWindow->setPosition(Ogre::Vector2(mWindow->getWidth()-200, 0));
+	tweakTestWindow->setSize(Ogre::Vector2(200, 210));
+
+	mWindowColor = tweakTestWindow->addColorVariable("Color", false, "", Ogre::ColourValue(1.0, 0.757, 0.145));
+	mWindowPosX = tweakTestWindow->addIntegerVariable("X Pos", false, "", 0);
+	mWindowPosX->setLimits(0, mWindow->getWidth());
+	mWindowPosY = tweakTestWindow->addIntegerVariable("Y Pos", false, "", 0);
+	mWindowPosY->setLimits(0, mWindow->getHeight());
+
+
 }
 
 void artSeaApp::chooseSceneManager(void)
@@ -164,6 +225,45 @@ bool artSeaApp::setup()
 	return (result && true);	//if base setup() fails, we fail too.
 
 	ARTSEA_UNGUARD;
+}
+
+//================================================================
+// Input handling
+//================================================================
+
+bool artSeaApp::keyPressed( const OIS::KeyEvent &arg )
+{
+	tweakWindowManager->injectKeyPressed(arg);
+
+	return BaseApplication::keyPressed(arg);
+}
+
+bool artSeaApp::keyReleased( const OIS::KeyEvent &arg )
+{
+	tweakWindowManager->injectKeyReleased(arg);
+
+	return BaseApplication::keyReleased(arg);
+}
+
+bool artSeaApp::mouseMoved( const OIS::MouseEvent &arg )
+{
+	tweakWindowManager->injectMouseMoved(arg);
+
+	return BaseApplication::mouseMoved(arg);
+}
+
+bool artSeaApp::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+{
+	tweakWindowManager->injectMousePressed(arg, id);
+
+	return BaseApplication::mousePressed(arg, id);
+}
+
+bool artSeaApp::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+{
+	tweakWindowManager->injectMouseReleased(arg, id);
+
+	return BaseApplication::mouseReleased(arg, id);
 }
 
 

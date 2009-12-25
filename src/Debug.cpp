@@ -19,11 +19,11 @@ Ogre::Log* CDebugTools::logTarget = NULL;
 void CDebugTools::displayException(const char* type, const char* message)
 {
 	std::stringstream buffer;
-	buffer << message << std::endl << std::endl;
+	buffer << type << std::endl << std::endl << message << std::endl << std::endl;
 	buffer << "Call stack:" << std::endl << getCallStack() << std::endl;
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-	MessageBox( NULL, buffer.str().c_str(), type, MB_OK | MB_ICONERROR | MB_TASKMODAL);
+	MessageBox( NULL, buffer.str().c_str(), "Fatal error!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 #else
 	std::cerr << type << std::endl << std::endl << buffer.str() << std::flush;
 #endif
