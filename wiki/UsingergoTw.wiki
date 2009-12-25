@@ -75,7 +75,7 @@ For now, refer to !TwOgre demo - it's generally the same code, but with `TwOgre:
 *This step is REQUIRED for ergoTw (and !TwOgre, and !AntTweakBar) to work!*
 
 === The chain syntax ===
-Inspired by Koshmaar's !AntTweakBar wrapper and "Named PArameters Idiom", ergoTw module provides a simplified syntax for setting properties of tweaked variables. The following two code fragments are therefore equivalent:
+Inspired by Koshmaar's !AntTweakBar wrapper and "Named Parameters Idiom", ergoTw module provides a simplified syntax for setting properties of tweaked variables. The following two code fragments are therefore equivalent:
 {{{
 //Chain example
 testTweakBar->addRealVariable("Shared Real", testSharedReal)->range(0.0, 15.0, 0.3)->label("TestLabel")->group("Group1");
