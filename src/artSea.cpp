@@ -59,26 +59,36 @@ artSeaApp::~artSeaApp(void)
 //		delete hydraxModule;
 //	}
 
-	if(tweakWindowManager)
+	if(tweakBarSupervisor)
 	{
-		delete tweakWindowManager;
+		delete tweakBarSupervisor;
 	}
 }
 
 //================================================================
 // Simulation update stuff
 //================================================================
-bool artSeaApp::frameStarted(FrameEvent& evt)
+bool artSeaApp::frameStarted(const FrameEvent& evt)
 {
+	ARTSEA_DEBUG_LOG << "WHAT THE HECK?" ;
 	//call superclass function
 	bool result = BaseApplication::frameStarted(evt);
+
+	ARTSEA_DEBUG_LOG << "POST-BACKCALL" ;
+
 
 //	hydraxModule->update(evt.timeSinceLastFrame);
 
 	// Update values from Window 2
-	tweakTestWindow->setColor(mWindowColor->getColorValue());
-	tweakTestWindow->setPosition(Ogre::Vector2(mWindowPosX->getIntegerValue(), mWindowPosY->getIntegerValue()));
-	tweakTestWindow->setTitle(mWindowName->getStringValue());
+	testTweakWindow->setColor(mWindowColor->getColorValue());
+	testTweakWindow->setPosition(Ogre::Vector2(mWindowPosX->getIntegerValue(), mWindowPosY->getIntegerValue()));
+	//testTweakWindow->setTitle(mWindowName->getStringValue());
+
+	ARTSEA_DEBUG_LOG << "POST-TWOGRE" ;
+
+	tweakBarSupervisor->update();
+
+	ARTSEA_DEBUG_LOG << "This ever gets called?!?" ;
 
 	return (result && true);
 }
@@ -187,17 +197,34 @@ void artSeaApp::createScene(void)
 //	hydraxModule->setSunPosition(Ogre::Vector3(0,10000,90000));
 //	hydraxModule->setSunColor(Ogre::Vector3(1,0.6,0.4));
 
-	tweakWindowManager = new TwOgre::WindowManager(mWindow, mSceneMgr);
+	tweakBarSupervisor = new ergoTw::TweakBarSupervisor(mWindow, mSceneMgr);
 
-	tweakTestWindow = tweakWindowManager->createWindow("Test Window", "TwOgreGui Test", Ogre::ColourValue(0.0, 0.0, 1.0, 0.7));
-	tweakTestWindow->setPosition(Ogre::Vector2(mWindow->getWidth()-200, 0));
-	tweakTestWindow->setSize(Ogre::Vector2(200, 210));
+	testTweakBar = tweakBarSupervisor->createTweakBar("Test Window", "ergoTwGui Test", Ogre::ColourValue(0.0, 0.0, 1.0, 0.7));
 
-	mWindowColor = tweakTestWindow->addColorVariable("Color", false, "", Ogre::ColourValue(1.0, 0.757, 0.145));
-	mWindowPosX = tweakTestWindow->addIntegerVariable("X Pos", false, "", 0);
+	testTweakWindow = testTweakBar->getTwOgreWindow();
+
+	testTweakWindow->setPosition(Ogre::Vector2(mWindow->getWidth()-200, 0));
+	testTweakWindow->setSize(Ogre::Vector2(200, 210));
+
+	//Creation of TwOgre and ergoTw variables - an example:
+
+	mWindowColor = testTweakWindow->addColorVariable("Color", false, "", Ogre::ColourValue(1.0, 0.757, 0.145));
+	mWindowPosX = testTweakWindow->addIntegerVariable("X Pos", false, "", 0);
 	mWindowPosX->setLimits(0, mWindow->getWidth());
-	mWindowPosY = tweakTestWindow->addIntegerVariable("Y Pos", false, "", 0);
+	mWindowPosY = testTweakWindow->addIntegerVariable("Y Pos", false, "", 0);
 	mWindowPosY->setLimits(0, mWindow->getHeight());
+
+	testSharedReal = -1.23;
+	testSharedString = "HelloWorld";
+
+	testTweakBar->addRealVariable("Shared Real", testSharedReal)->range(0.0, 15.0, 0.3)->label("TestLabel")->group("Group1");
+	testTweakBar->addStringVariable("Shared String", testSharedString)->group("Group1");
+
+	//NOTE that with ergoTw we don't have to store our tweaker-variables anywhere - they are bound to real variables
+	//and the TweakBarSupervisor takes care of updating. We should keep the pointer to TweakBar though.
+
+	testTweakBar->addRealVariable("Same Shared Real", testSharedReal)->range(5.0, 10.0, 0.5)->label("YetAnotherTestLabel")->group("Group2");
+	testTweakBar->addStringVariable("Same Shared String", testSharedString)->group("Group2");
 
 
 }
@@ -222,6 +249,10 @@ bool artSeaApp::setup()
 	//create artSea log
 	CDebugTools::createLog(ARTSEA_LOG_FILE_NAME);
 
+	//TODO move createScene here!
+
+	ARTSEA_LOG << "artSeaApp::setup() - setup completed." ;
+
 	return (result && true);	//if base setup() fails, we fail too.
 
 	ARTSEA_UNGUARD;
@@ -233,35 +264,35 @@ bool artSeaApp::setup()
 
 bool artSeaApp::keyPressed( const OIS::KeyEvent &arg )
 {
-	tweakWindowManager->injectKeyPressed(arg);
+	tweakBarSupervisor->injectKeyPressed(arg);
 
 	return BaseApplication::keyPressed(arg);
 }
 
 bool artSeaApp::keyReleased( const OIS::KeyEvent &arg )
 {
-	tweakWindowManager->injectKeyReleased(arg);
+	tweakBarSupervisor->injectKeyReleased(arg);
 
 	return BaseApplication::keyReleased(arg);
 }
 
 bool artSeaApp::mouseMoved( const OIS::MouseEvent &arg )
 {
-	tweakWindowManager->injectMouseMoved(arg);
+	tweakBarSupervisor->injectMouseMoved(arg);
 
 	return BaseApplication::mouseMoved(arg);
 }
 
 bool artSeaApp::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
-	tweakWindowManager->injectMousePressed(arg, id);
+	tweakBarSupervisor->injectMousePressed(arg, id);
 
 	return BaseApplication::mousePressed(arg, id);
 }
 
 bool artSeaApp::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
-	tweakWindowManager->injectMouseReleased(arg, id);
+	tweakBarSupervisor->injectMouseReleased(arg, id);
 
 	return BaseApplication::mouseReleased(arg, id);
 }
