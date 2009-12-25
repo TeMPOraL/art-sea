@@ -35,6 +35,7 @@ LGPL like the rest of the OGRE engine.
 //#include <Hydrax/Hydrax.h>
 
 #include <TwOgre.h>
+#include "ergoTwGui.h"
 
 const char* ARTSEA_LOG_FILE_NAME = "artSea.log";
 
@@ -48,7 +49,7 @@ public:
 protected:
 	//overloads from BaseApplication
 	virtual void createScene(void);
-	virtual bool frameStarted(FrameEvent& evt);
+	virtual bool frameStarted(const FrameEvent& evt);
 	virtual bool frameRenderingQueued(const FrameEvent& evt);
 	virtual bool setup();
 	virtual void chooseSceneManager(void);
@@ -82,13 +83,18 @@ protected:
 
 //	Hydrax::Hydrax* hydraxModule;	//module for realistic rendering of underwater environment
 
-	TwOgre::WindowManager *tweakWindowManager;
-	TwOgre::Window *tweakTestWindow;
+	ergoTw::TweakBarSupervisor* tweakBarSupervisor;
+
+	ergoTw::TweakBar *testTweakBar;
+	TwOgre::Window* testTweakWindow;
 
 	//AntTweakBar testing
 	TwOgre::ColorVariable *mWindowColor;
 	TwOgre::IntegerVariable *mWindowPosX, *mWindowPosY;
 	TwOgre::StringVariable *mWindowName;
+	
+	Ogre::Real testSharedReal;
+	Ogre::String testSharedString;
 
 
 };
