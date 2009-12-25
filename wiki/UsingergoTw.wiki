@@ -1,0 +1,132 @@
+#summary A quick guide to ergoTw - a TwOgre wrapper.
+#labels Phase-Implementation
+
+= A quick guide to ergoTw =
+ergoTw is an experimental piece of code that wraps around !TwOgre - which itself is a wrapper around !AntTweakBar.
+
+== Small code sample ==
+{{{
+//Create tweak bar
+ergoTw::TweakBar* testTweakBar = tweakBarSupervisor->createTweakBar("My Window", "ergoTwGui Tweaker Window", Ogre::ColourValue(0.0, 0.0, 1.0, 0.7));
+
+//Bind variables and set properties
+testTweakBar->addRealVariable("timescale", timescale)->range(0.0, 15.0, 0.3)->label("time multiplier")->group("Game settings");
+testTweakBar->addStringVariable("playername", playerName)->group("Game settings");
+}}}
+
+== Design details ==
+ergoTw consists of two main management classes:
+  * !TweakBarSupervisor - a singleton class that manages all !TweakBars. Equivalent of `TwOgre::WindowManager`
+  * !TweakBar - a class that represents single on-screen window with controls. Equivalent of `TwOgre::Window`
+
+Six variable types are included. They are all equivalents of !TwOgre classes with the same name:
+  * !BoolVariable - binds to C++ `bool` type.
+  * !ColorVariable - binds to `Ogre::ColourValue` type.
+  * !EnumVariable - binds to C++ `signed int` type, but allows custom `TwOgre::EnumValueList` to be specified that contains labels for integer values. Only the values represented by labels can be selected.
+  * !IntegerVariable - binds to C++ `signed int` type.
+  * !RealVariable - binds to `Ogre::Real` type.
+  * !StringVariable - binds to `Ogre::String` type.
+
+All variable types can have additional properties specified:
+  * Common to all variables
+    * Group - group of variables that this variable belongs to. Variables in the same group are collected together on tweaker window.
+    * Label - text to be shown instead of variable name.
+    * Help - text to be shown in !AntTweakBar help window.
+  * !BoolVariable
+    * Display strings - strings to be shown for `true` and `false` values.
+    * Toggle shortcut - key combination that toggles the variable state.
+  * !EnumVariable
+    * Additional enum values - user can add more enumeration values at runtime.
+    * Increment/decrement shortcuts - key combinations that select next / previous enum value.
+  * !IntegerVariable
+    * Range (min, max, step) - minimum and maximum value allowed and incrementation step.
+    * Increment/decrement shortcuts
+    * Show as decimal / show as hex - one can change the variable on-screen representation.
+  * !RealVariable
+    * Range (min, max, step)
+    * Precision - number of decimal places shown
+    * Increment/decrement shortcuts
+
+== Implementation details ==
+
+=== Setting up and tearing down ===
+==== Initialization ====
+You need to create `TweakBarSupervisor` instance. It's a singleton, so you need to only do this once. You can choose from two constructors - one taking the same parameters as `TwOgre::WindowManager`; the other one taking only a pointer to `TwOgre::WindowManager`. Use the second one if you already have a working `TwOgre::WindowManager` instance.
+
+Example:
+{{{
+ergoTw::TweakBarSupervisor* tweakBarSupervisor = new ergoTw::TweakBarSupervisor(mWindow, mSceneMgr);
+ergoTw::TweakBar* testTweakBar = tweakBarSupervisor->createTweakBar("Test Window", "ergoTwGui Test", Ogre::ColourValue(0.0, 0.0, 1.0, 0.7));
+}}}
+
+==== Deinitialization ====
+All you have to do is to delete `TweakBarSupervisor` instance. *Do not* delete individual `TweakBar` objects.
+
+Example:
+{{{
+delete TweakBarSupervisor::getSingletonPtr();
+}}}
+
+==== Plugging in to Ogre Input System ====
+*TODO* write more about this.
+
+For now, refer to !TwOgre demo - it's generally the same code, but with `TwOgre::WindowManager` replaced with `ergoTw::TweakBarSupervisor`.
+
+*This step is REQUIRED for ergoTw (and !TwOgre, and !AntTweakBar) to work!*
+
+=== The chain syntax ===
+Inspired by Koshmaar's !AntTweakBar wrapper and "Named PArameters Idiom", ergoTw module provides a simplified syntax for setting properties of tweaked variables. The following two code fragments are therefore equivalent:
+{{{
+//Chain example
+testTweakBar->addRealVariable("Shared Real", testSharedReal)->range(0.0, 15.0, 0.3)->label("TestLabel")->group("Group1");
+}}}
+
+{{{
+//Classic syntax example
+ergoTw::RealVariable* variable = testTweakBar->addRealVariable("Shared Real", testSharedReal);
+variable->range(0.0, 15.0, 0.3);
+variable->label("TestLabel");
+variable->group("Group1");
+}}}
+
+_There is an unsolved issue concerning the chain syntax - currently the functions for Group, Label and Help properties return pointer to variable's base class (`ergoTw::Variable`). Those functions should be called at the end of the chain, because there is no way to call other functions after them without an explicit type cast._
+
+=== Variable lifetime ===
+Because we're binding raw references to tweaker system, it is important to make sure that those references are valid for the entire lifetime of !TweakBar they were binded to. Currently the best practice is to store pointer to `TweakBar` class and remove it from `TweakBarSupervisor` (using `TweakBarSupervisor::destroyTweakBar()` functions) before any of the references becomes invalid.
+*There is NO way to delete a single variable from !TweakBar! *
+
+== A more detailed code sample ==
+Just to show how it works:
+{{{
+//Setting up TweakBarSupervisor
+ergoTw::TweakBarSupervisor* tweakBarSupervisor = new ergoTw::TweakBarSupervisor(mWindow, mSceneMgr);
+
+ergoTw::TweakBar* testTweakBar = tweakBarSupervisor->createTweakBar("Test Window", "ergoTwGui Test", Ogre::ColourValue(0.0, 0.0, 1.0, 0.7));
+
+//Getting TwOgre window from ergoTw TweakBar
+TwOgre::Window* testTweakWindow = testTweakBar->getTwOgreWindow();
+
+testTweakWindow->setPosition(Ogre::Vector2(mWindow->getWidth()-200, 0));
+testTweakWindow->setSize(Ogre::Vector2(200, 210));
+
+//Creating and binding TwOgre variables
+TwOgre::ColorVariable* mWindowColor = testTweakWindow->addColorVariable("Color", false, "", Ogre::ColourValue(1.0, 0.757, 0.145));
+TwOgre::IntegerVariable* mWindowPosX = testTweakWindow->addIntegerVariable("X Pos", false, "", 0);
+mWindowPosX->setLimits(0, mWindow->getWidth());
+TwOgre::IntegerVariable* mWindowPosY = testTweakWindow->addIntegerVariable("Y Pos", false, "", 0);
+mWindowPosY->setLimits(0, mWindow->getHeight());
+
+//Setting up shared variables
+Ogre::Real testSharedReal = -1.23;
+Ogre::String testSharedString = "HelloWorld";
+
+//Binding variables via reference
+testTweakBar->addRealVariable("Shared Real", testSharedReal)->range(0.0, 15.0, 0.3)->label("TestLabel")->group("Group1");
+testTweakBar->addStringVariable("Shared String", testSharedString)->group("Group1");
+
+//NOTE that with ergoTw we don't have to store our tweaker-variables anywhere - they are bound to real variables
+//and the TweakBarSupervisor takes care of updating. We should keep the pointer to TweakBar though.
+
+testTweakBar->addRealVariable("Same Shared Real", testSharedReal)->range(5.0, 10.0, 0.5)->label("YetAnotherTestLabel")->group("Group2");
+testTweakBar->addStringVariable("Same Shared String", testSharedString)->group("Group2");
+}}}
