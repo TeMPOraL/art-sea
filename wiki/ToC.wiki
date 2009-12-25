@@ -9,3 +9,6 @@ Design
 
 Implementation
    [DevelopmentProjectSetup Setting up artSea project]
+
+External sources
+   [ReferenceMaterials Reference materials]
