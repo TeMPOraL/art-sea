@@ -9,8 +9,8 @@ This page describes "Best Current Practice" about how to create and configure ar
 If you don't have them, then get following libraries:
   * OGRE - download current SDK from http://ogre3d.org/
   * FMOD - get current SDK from http://fmod.org/
-  * TwOgreGui - download source from SVN at http://code.google.com/p/twogregui/
-  * TinyXml - you can get it from http://www.grinninglizard.com/tinyxml/ , but it's already included in artSea repository
+  * !TwOgreGui - download source from SVN at http://code.google.com/p/twogregui/
+  * !TinyXml - you can get it from http://www.grinninglizard.com/tinyxml/ , but it's already included in artSea repository
 
 = Setup details =
 
@@ -20,8 +20,8 @@ Just install SDK and configure Ogre Project Wizard, then generate "Standard Ogre
 == FMOD ==
 Download, install and add to Visual C++ Directories (add api/inc/ and api/lib to their proper places). Link against fmodexL_vc.lib (Debug) / fmodex_vc.lib (Release).
 
-== TwOgreGui ==
-This one is a little tricky to get working. After checking out source from TwOgreGui repository you should have a working VC++ solution with both library and demo application. Unless you have a recent DirectX SDK installed, they won't compile in Debug mode due to lack of dxerr9.h library. Unfortunately, you need to comment-out lines that reference that library. So, this goes out:
+== !TwOgreGui ==
+This one is a little tricky to get working. After checking out source from !TwOgreGui repository you should have a working VC++ solution with both library and demo application. Unless you have a recent DirectX SDK installed, they won't compile in Debug mode due to lack of dxerr9.h library. Unfortunately, you need to comment-out lines that reference that library. So, this goes out:
 {{{
 #ifdef _DEBUG
 	#include <dxerr9.h>
@@ -29,19 +29,19 @@ This one is a little tricky to get working. After checking out source from TwOgr
 #endif // _DEBUG
 }}}
 
-After that, TwOgreGui should compile in both Debug and Release configuration.
+After that, !TwOgreGui should compile in both Debug and Release configuration.
 
-You then need to add source directory of TwOgreGui to VC++ Include Directories. Also, grab .lib and .dll from both Release and Debug folders, rename Debug .lib to TwOgre_d.lib and place it in a folder. Then, add that folder to VC++ Library Directories.
+You then need to add source directory of !TwOgreGui to VC++ Include Directories. Also, grab .lib and .dll from both Release and Debug folders, rename Debug .lib to !TwOgre_d.lib and place it in a folder. Then, add that folder to VC++ Library Directories.
 
-In artSea project you need to link against TwOgre_d.lib (Debug) / TwOgre.lib (Release) and (*this is important*) define a preprocessor macro (Project Properties->Configuration Properties->C/C++->Preprocessor->Preprocessor Definitions) *TW_NO_LIB_PRAGMA* (otherwise the code will try to link against AntTweakBar.lib, which is of course missing).
+In artSea project you need to link against !TwOgre_d.lib (Debug) / !TwOgre.lib (Release) and (*this is important*) define a preprocessor macro (Project Properties->Configuration Properties->C/C++->Preprocessor->Preprocessor Definitions) *TW_NO_LIB_PRAGMA* (otherwise the code will try to link against !AntTweakBar.lib, which is of course missing).
 
 That should do it ;).
 
-== TinyXml ==
+== !TinyXml ==
 Currently included with artSea source; no further work is required.
 
 = Deployment details =
 Post-build copy process should copy your executable to Samples directory of OgreSDK. You should find your executable there along with a lot of various Ogre-related DLLs. The following is the list of all other DLLs and stuff that needs to be placed in the executable directory:
 
   * fmodexL.dll / fmodex.dll (Debug / Release)
-  * TwOgre.dll (either Debug or Release compilation)
+  * !TwOgre.dll (either Debug or Release compilation)
