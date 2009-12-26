@@ -51,7 +51,7 @@ All variable types can have additional properties specified:
 
 === Setting up and tearing down ===
 ==== Initialization ====
-You need to create `TweakBarSupervisor` instance. It's a singleton, so you need to only do this once. You can choose from two constructors - one taking the same parameters as `TwOgre::WindowManager`; the other one taking only a pointer to `TwOgre::WindowManager`. Use the second one if you already have a working `TwOgre::WindowManager` instance.
+You need to create `TweakBarSupervisor` instance. It's a singleton, so you need to  do this only once. You can choose from two constructors - one taking the same parameters as `TwOgre::WindowManager`; the other one taking only a pointer to `TwOgre::WindowManager`. Use the second one if you already have a working `TwOgre::WindowManager` instance.
 
 Example:
 {{{
