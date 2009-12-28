@@ -37,6 +37,8 @@ LGPL like the rest of the OGRE engine.
 #include <TwOgre.h>
 #include "ergoTwGui.h"
 
+#include<vector>
+
 const char* ARTSEA_LOG_FILE_NAME = "artSea.log";
 
 
@@ -96,7 +98,10 @@ protected:
 	Ogre::Real testSharedReal;
 	Ogre::String testSharedString;
 
-
+private:
+	std::vector<Entity*>fish;
+	std::vector<SceneNode*> nodes;
+	int howManyFish;
 };
 
 
