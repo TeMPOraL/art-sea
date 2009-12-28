@@ -25,7 +25,7 @@ LGPL like the rest of the OGRE engine.
 //[v] Call stack (debugging)
 //[v] Custom logging target
 //[v] Own assertions?
-//* More comments
+//* More comments 
 //* Even more comments
 //* Hydrax
 
@@ -36,6 +36,8 @@ LGPL like the rest of the OGRE engine.
 #include "artSea.h"
 
 #include "Debug.h"
+
+#include<stdio.h>
 
 static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
@@ -166,10 +168,24 @@ void artSeaApp::createScene(void)
 	CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow");
 	CEGUI::MouseCursor::getSingleton().show( );
 	setupEventHandlers();
-	Entity* ogreHead = mSceneMgr->createEntity("Head", "ogrehead.mesh");
 
+	//Entities and nodes declaration
+	//TODO differen folks differen fish-models
+	/**for(int i=0; i<howManyFish; ++i)
+	{
+		String name="fish";
+		char * postfix;
+		itoa(i,postfix,10);
+		name+=postfix;
+		fish[i]=mSceneMgr->createEntity(name,"fish.mesh");
+		nodes[i]=mSceneMgr->getRootSceneNode()->createChildSceneNode();
+		nodes[i]->attachObject(fish[i]);
+
+	}*/
+	
+	 Entity* ogreHead = mSceneMgr->createEntity("Head", "fish.mesh");
 	SceneNode* headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
-	headNode->attachObject(ogreHead);
+	headNode->attachObject(ogreHead); 
 
 	// Set ambient light
 	mSceneMgr->setAmbientLight(ColourValue(0.5, 0.5, 0.5));
