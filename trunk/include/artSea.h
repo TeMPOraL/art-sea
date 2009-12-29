@@ -99,10 +99,34 @@ protected:
 	Ogre::String testSharedString;
 
 private:
-	std::vector<Entity*>fish;
-	std::vector<SceneNode*> nodes;
+	std::vector<Entity*>fishEntities;
+	std::vector<SceneNode*> fishNodes;
+	std::vector<Vector3>mSwimList;
 	int howManyFish;
 };
 
+
+class FlockDescription
+{
+public:
+	FlockDescription(int flockSize, String modelFileName, int visibility):
+	  flockSize(flockSize),modelFileName(modelFileName),visibility(visibility) {}
+	int getFlockSize()
+	{
+		return flockSize;
+	}
+	int getFlockVisibility()
+	{
+		return visibility;
+	}
+	String getFlockModelFileName()
+	{
+		return modelFileName;
+	}
+private:
+	int flockSize;
+	String modelFileName;
+	int visibility;
+};
 
 #endif // #ifndef __artSea_h_

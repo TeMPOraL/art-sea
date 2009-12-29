@@ -29,6 +29,13 @@ LGPL like the rest of the OGRE engine.
 //* Even more comments
 //* Hydrax
 
+////////////////////////////////////////////////////
+// Dorota's TODOs:
+//* change all copied stuff to const references
+//* fix simulationWorld:: getAllFish() function
+//* think of rybka.position = new Position(...);  
+
+
 //#include <Hydrax/Hydrax.h>
 //#include <Hydrax/Noise/Perlin/Perlin.h>
 //#include <Hydrax/Modules/ProjectedGrid/ProjectedGrid.h>
@@ -38,6 +45,8 @@ LGPL like the rest of the OGRE engine.
 #include "Debug.h"
 
 #include<stdio.h>
+#include "lexical_cast.h"
+#include "simulation.h"
 
 static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
@@ -150,6 +159,19 @@ void artSeaApp::updateWorld(Real deltaT)
 //================================================================
 void artSeaApp::createScene(void)
 {
+	//simulation test
+	//SimulationWorld *ourWorld=new SimulationWorld();
+	/**SimulationWorld *ourWorld=SimulationWorld::getSimulationWorld();
+	int howManyFlocks=2;
+	std::vector<FlockDescription*> flockDesc;
+	flockDesc.push_back(new FlockDescription(6,"fish.mesh",5));
+	flockDesc.push_back(new FlockDescription(6,"rybka.mesh",5));
+	ourWorld->setHowManyFlocks(howManyFlocks);
+	ourWorld->createFlocks(ourWorld->getHowManyFlocks());*/
+	//std::vector<Fish*> fish = ourWorld->getAllFish();
+
+	//the end of simulation test
+
 	// setup GUI system
 	mGUIRenderer = new CEGUI::OgreCEGUIRenderer(mWindow,
 	 Ogre::RENDER_QUEUE_OVERLAY, false, 3000, mSceneMgr);
@@ -169,22 +191,28 @@ void artSeaApp::createScene(void)
 	CEGUI::MouseCursor::getSingleton().show( );
 	setupEventHandlers();
 
+	howManyFish=5;
 	//Entities and nodes declaration
 	//TODO differen folks differen fish-models
-	/**for(int i=0; i<howManyFish; ++i)
+	for(int i=0; i<howManyFish; ++i)
 	{
 		String name="fish";
-		char * postfix;
-		itoa(i,postfix,10);
+		String postfix = lexical_cast<String>(i);
 		name+=postfix;
-		fish[i]=mSceneMgr->createEntity(name,"fish.mesh");
-		nodes[i]=mSceneMgr->getRootSceneNode()->createChildSceneNode();
-		nodes[i]->attachObject(fish[i]);
-
-	}*/
+		fishEntities.push_back(mSceneMgr->createEntity(name,"rybka.mesh"));
+		fishNodes.push_back(mSceneMgr->getRootSceneNode()->createChildSceneNode());
+		fishNodes[i]->attachObject(fishEntities[i]);
+	}
+	ARTSEA_DEBUG_LOG<<"JEST FAJNE";
+	for(int i=0; i<howManyFish; ++i)
+	{
+		//printf("%s\n",fish[i]->getName());
+		ARTSEA_DEBUG_LOG<<fishEntities[i]->getName();
+	} 
 	
-	 Entity* ogreHead = mSceneMgr->createEntity("Head", "fish.mesh");
+	 Entity* ogreHead = mSceneMgr->createEntity("Head", "rybka.mesh");
 	SceneNode* headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+	headNode->scale(15,15,15);
 	headNode->attachObject(ogreHead); 
 
 	// Set ambient light

@@ -102,7 +102,7 @@ protected:
 	bool mStatsOn;
 	bool mUseBufferedInputKeys, mUseBufferedInputMouse, mInputTypeSwitchingOn;
 	unsigned int mNumScreenShots;
-	float mMoveScale;
+	Ogre::Real mMoveScale;
 	Degree mRotScale;
 	Real mTimeUntilNextToggle; // just to stop toggles flipping too fast
 	Radian mRotX, mRotY;
