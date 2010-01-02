@@ -160,16 +160,41 @@ void artSeaApp::updateWorld(Real deltaT)
 void artSeaApp::createScene(void)
 {
 	//simulation test
-	//SimulationWorld *ourWorld=new SimulationWorld();
-	/**SimulationWorld *ourWorld=SimulationWorld::getSimulationWorld();
-	int howManyFlocks=2;
+	//setting simulations parameters: howManyFlocks, flockSizes, model files
+	srand(time(NULL));
+	int howManyFlocks=2; // howManyFlocks setting
+	std::vector<int>flockSizes;
+	flockSizes.push_back(7); //flockSizes setting
+	flockSizes.push_back(3);
+	std::vector<int> & sizes= flockSizes;
+	SimulationWorld *ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes);
 	std::vector<FlockDescription*> flockDesc;
-	flockDesc.push_back(new FlockDescription(6,"fish.mesh",5));
-	flockDesc.push_back(new FlockDescription(6,"rybka.mesh",5));
-	ourWorld->setHowManyFlocks(howManyFlocks);
-	ourWorld->createFlocks(ourWorld->getHowManyFlocks());*/
-	//std::vector<Fish*> fish = ourWorld->getAllFish();
+	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
+	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
+	std::vector<Vector3> & positions=ourWorld->getAllFishPositions();
+	std::vector<int> & flocks = ourWorld->getAllFishFlocks();
+	int prev=0;
+	ARTSEA_DEBUG_LOG<<positions.size();
+	for(int i=0; i<positions.size(); ++i)
+	{
+		ARTSEA_DEBUG_LOG<<positions[i].x<<positions[i].y<<positions[i].z;
+		String name="fish";
+		String postfix = lexical_cast<String>(i);
+		name+=postfix;
+		String modelName;
+		prev=0;
+		modelName=flockDesc[flocks[i]]->getFlockModelFileName();
+		ARTSEA_DEBUG_LOG<<modelName;
 
+		fishEntities.push_back(mSceneMgr->createEntity(name,modelName));
+		fishNodes.push_back(mSceneMgr->getRootSceneNode()->createChildSceneNode());
+		fishNodes[i]->setPosition(positions[i]);
+		fishNodes[i]->attachObject(fishEntities[i]);
+		if(modelName=="rybka.mesh")
+		{
+			fishNodes[i]->scale(5,5,5);
+		}
+	}
 	//the end of simulation test
 
 	// setup GUI system
@@ -191,29 +216,11 @@ void artSeaApp::createScene(void)
 	CEGUI::MouseCursor::getSingleton().show( );
 	setupEventHandlers();
 
-	howManyFish=5;
-	//Entities and nodes declaration
-	//TODO differen folks differen fish-models
-	for(int i=0; i<howManyFish; ++i)
-	{
-		String name="fish";
-		String postfix = lexical_cast<String>(i);
-		name+=postfix;
-		fishEntities.push_back(mSceneMgr->createEntity(name,"rybka.mesh"));
-		fishNodes.push_back(mSceneMgr->getRootSceneNode()->createChildSceneNode());
-		fishNodes[i]->attachObject(fishEntities[i]);
-	}
-	ARTSEA_DEBUG_LOG<<"JEST FAJNE";
-	for(int i=0; i<howManyFish; ++i)
-	{
-		//printf("%s\n",fish[i]->getName());
-		ARTSEA_DEBUG_LOG<<fishEntities[i]->getName();
-	} 
-	
-	 Entity* ogreHead = mSceneMgr->createEntity("Head", "rybka.mesh");
+	//ogre head example
+	/** Entity* ogreHead = mSceneMgr->createEntity("Head", "rybka.mesh");
 	SceneNode* headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
 	headNode->scale(15,15,15);
-	headNode->attachObject(ogreHead); 
+	headNode->attachObject(ogreHead); */
 
 	// Set ambient light
 	mSceneMgr->setAmbientLight(ColourValue(0.5, 0.5, 0.5));
