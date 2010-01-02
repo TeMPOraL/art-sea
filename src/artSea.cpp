@@ -60,6 +60,9 @@ artSeaApp::artSeaApp(void)
 	fixedStepRate = DEFAULT_FIXED_STEP_SIMULATION_RATE;
 	fixedStepDTMax = DEFAULT_FIXED_STEP_SIMULATION_DT_MAX;
 	fixedStepMaxUpdatesPerFrame = DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME;
+	//ANIMATION
+	mSwimSpeed=35;
+	mDirection=Ogre::Vector3::ZERO;
 }
 
 //-------------------------------------------------------------------------------------
@@ -140,6 +143,16 @@ void artSeaApp::requestSimulationStateUpdate(Real deltaT)
 	ARTSEA_UNGUARD;
 }
 
+bool artSeaApp::nextLocation()
+{
+	if(mSwimList.empty())
+		return false;
+	mDestination=mSwimList.front();
+	mSwimList.pop_front();
+	mDirection=mDestination-mNode->getPosition();
+	mDistance=mDirection.normalise();
+	return true;
+}
 void artSeaApp::updateWorld(Real deltaT)
 {
 	ARTSEA_GUARD(artSeaApp::updateWorld);
@@ -147,6 +160,48 @@ void artSeaApp::updateWorld(Real deltaT)
 	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT.");
 
 	ARTSEA_LOG << "World update.";
+	/**if(mDirection==Ogre::Vector3::ZERO)
+	{
+		if(nextLocation())
+		{
+			mAnimationState = mEntity->getAnimationState("Swim");
+            mAnimationState->setLoop(true);
+            mAnimationState->setEnabled(true);
+		}
+	}
+	else
+	{
+		Real move = mSwimSpeed*deltaT;
+		mDistance-=move;
+		if(mDistance<=0.0f)
+		{
+			mNode->setPosition(mDestination);
+			mDirection=Vector3::ZERO;
+			if(!nextLocation()) // the end of animations
+			{
+				mAnimationState = mEntity->getAnimationState("Idle");
+                mAnimationState->setLoop(true);
+                mAnimationState->setEnabled(true);
+			}
+			else // rotations
+			{
+				Vector3 src = mNode->getOrientation() * Vector3::UNIT_X;
+				if ((1.0f + src.dotProduct(mDirection)) < 0.0001f) 
+				{
+					mNode->yaw(Degree(180));
+				}
+				else
+				{
+					Ogre::Quaternion quat = src.getRotationTo(mDirection);
+					mNode->rotate(quat);
+				} 
+			}
+		}
+		else
+		{
+			mNode->translate(mDirection*move);
+		}
+	}*/
 
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
 	//ARTSEA_ASSERT(0, "Should never get here.");
@@ -159,6 +214,7 @@ void artSeaApp::updateWorld(Real deltaT)
 //================================================================
 void artSeaApp::createScene(void)
 {
+	//////////////////////////////////////////////////////////////
 	//simulation test
 	//setting simulations parameters: howManyFlocks, flockSizes, model files
 	srand(time(NULL));
@@ -175,7 +231,7 @@ void artSeaApp::createScene(void)
 	std::vector<int> & flocks = ourWorld->getAllFishFlocks();
 	int prev=0;
 	ARTSEA_DEBUG_LOG<<positions.size();
-	for(int i=0; i<positions.size(); ++i)
+	for(unsigned int i=0; i<positions.size(); ++i)
 	{
 		ARTSEA_DEBUG_LOG<<positions[i].x<<positions[i].y<<positions[i].z;
 		String name="fish";
@@ -195,7 +251,12 @@ void artSeaApp::createScene(void)
 			fishNodes[i]->scale(5,5,5);
 		}
 	}
+	//animation
+	mEntity=fishEntities[0];
+	mNode=fishNodes[0];
+	mSwimList.push_back(Ogre::Vector3(100.0f,0.0f,100.0f));
 	//the end of simulation test
+	////////////////////////////////////////////////////////////////////////////
 
 	// setup GUI system
 	mGUIRenderer = new CEGUI::OgreCEGUIRenderer(mWindow,

@@ -133,7 +133,7 @@ void SimulationWorld::setAllFishPositionsAndFlocks()
 void SimulationWorld::showWorld()
 {
 	ARTSEA_DEBUG_LOG<<"I'm gonna show you my world";
-	for(int i=0; i<allFishPositions.size(); ++i)
+	for(unsigned int i=0; i<allFishPositions.size(); ++i)
 	{
 		ARTSEA_DEBUG_LOG<<"positions:"<<allFishPositions[i].x<<allFishPositions[i].y<<
 			allFishPositions[i].z<<" "<<allFishFlocks[i];
