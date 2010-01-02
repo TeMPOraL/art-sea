@@ -1,18 +1,23 @@
 #include"simulation.h"
 #include"Debug.h"
+#include<time.h>
 //====================================================
 // SimulationWorld (singleton)
 //====================================================
 void Flock::createFish(Ogre::Vector3 position)
 {
-	Fish * fish= new Fish(position);
+	Fish * const fish= new Fish(position);
 	fishInTheFlock.push_back(fish);
 }
 void Flock::createAllFish()
 {
 	for(int i=0; i<flockSize; ++i)
 	{
-		createFish(Ogre::Vector3(i,i,i));
+		int x,y,z;
+		x=rand()%15;
+		y=rand()%20;
+		z=rand()%8;
+		createFish(Ogre::Vector3(x,y,z));
 	}
 }
 
@@ -51,33 +56,86 @@ void Flock::updateAllFish()
 bool SimulationWorld::singletonFlag=false;
 SimulationWorld *SimulationWorld::singleton=0;
 
-void SimulationWorld::createFlocks(int howMany)
+void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
 {
+	ARTSEA_DEBUG_LOG<<howMany;
 	for(int i=0; i<howMany; ++i)
 	{
-		Flock * newFlock = new Flock(6,7);
+		Flock * newFlock = new Flock(sizes[i],7);
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();
 	}
 }
 
 
-std::vector<Fish*> SimulationWorld::getAllFish()
+/**std::vector<Fish*const > SimulationWorld::getAllFish()
 {
 	//FIXIT !!!!!!!!!!!!!!!!
-	std::vector<Fish*>allFish;
+	std::vector<Fish*const>allFish;
 
 	//ATTENTION: iterators into vectors become invalidated whenever the number of
 	//elements in the vector changes.
-	/**ARTSEA_DEBUG_LOG<<"begin";
+	ARTSEA_DEBUG_LOG<<"begin";
 	for(int i=0; i<getHowManyFlocks(); ++i)
 	{
-		std::vector<Fish*>tmp=flocks[i]->getAllFish();
+		std::vector<Fish*const >tmp=flocks[i]->getAllFish();
 		ARTSEA_DEBUG_LOG<<tmp.size();
 		//allFish.reserve(allFish.size()+flocks[i]->getFlockSize());
-		//allFish.insert(allFish.begin(),flocks[i]->getAllFish().begin(),
-		//	flocks[i]->getAllFish().end());
+		allFish.insert(allFish.begin(),tmp.begin(),tmp.end());
 	}
-	ARTSEA_DEBUG_LOG<<"end"; */
+	ARTSEA_DEBUG_LOG<<"end"; 
 	return allFish;
+}*/
+
+//returns onluy positions for entities
+/**std::vector <Ogre::Vector3> & SimulationWorld::getAllFishPositions()
+{
+	std::vector<Ogre::Vector3> & temp=allFishPositions;
+	/**for(int i=0; i<getHowManyFlocks(); ++i)
+	{
+		for(int j=0; j<flocks[i]->getFlockSize(); ++j)
+		{
+			allFishPositions.push_back(flocks[i]->getAllFish()[j]->getPosition());
+		}
+	}*/
+	/**return temp;
+}*/
+
+std::vector<Ogre::Vector3>&  SimulationWorld::getAllFishPositions()
+{
+	std::vector<Ogre::Vector3>& temp=allFishPositions;
+	return temp;
+}
+
+std::vector<int> & SimulationWorld::getAllFishFlocks()
+{
+	return allFishFlocks;
+}
+
+
+//creates vector with positions and adequate vector with flocks' ids
+//allFishPositions[i] - positions of fish 'number' i
+//allFishFlocks[i] - flock id of fish 'number' i
+//needed for ogre module
+void SimulationWorld::setAllFishPositionsAndFlocks()
+{
+	for(int i=0; i<getHowManyFlocks(); ++i)
+	{
+		for(int j=0; j<flocks[i]->getFlockSize(); ++j)
+		{
+			allFishPositions.push_back(flocks[i]->getAllFish()[j]->getPosition());
+			allFishFlocks.push_back(i);
+		}
+	}
+}
+
+//debug log's positions & flocks of all fish
+void SimulationWorld::showWorld()
+{
+	ARTSEA_DEBUG_LOG<<"I'm gonna show you my world";
+	for(int i=0; i<allFishPositions.size(); ++i)
+	{
+		ARTSEA_DEBUG_LOG<<"positions:"<<allFishPositions[i].x<<allFishPositions[i].y<<
+			allFishPositions[i].z<<" "<<allFishFlocks[i];
+}
 }

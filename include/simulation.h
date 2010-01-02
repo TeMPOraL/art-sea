@@ -62,15 +62,16 @@ public:
 		return flockSize;
 	}
 	Ogre::Real getSquaredDistance(Fish a, Fish b)
-	{
+	{ 
 		return a.getPosition().squaredDistance(b.getPosition());		
 	}
 	//TODO: check pointer. This returs cons reference to a vector, which has
 	//pointers to fish. We cannot change pointer to this vector, but what about
 	//fish? Check & make sure it's corrent. Everything const! Const references
-	const std::vector<Fish*>& getAllFish()
+	const std::vector<Fish*const >& getAllFish()
 	{
-		return fishInTheFlock;
+		std::vector<Fish* const> & ref = fishInTheFlock;
+		return ref;
 	}
 	~Flock(){};
 
@@ -83,7 +84,7 @@ private:
 										  //fish which can see everything around
 
 private:
-	std::vector<Fish*> fishInTheFlock;	//fish which belong to this flock
+	std::vector<Fish* const> fishInTheFlock;	//fish which belong to this flock
 	//TODO  right know fish can see everywhere around; change it!
 	int visibility;				//how far each fish can see; the same for all fish from the flock;
 								//fish can see everywhere arund in the sphere. visibility=radius of this sphere
@@ -102,11 +103,11 @@ public:
 		assert(singleton!=0);
 		singletonFlag=false;
 	}
-	static SimulationWorld* getSimulationWorld()
+	static SimulationWorld* getSimulationWorld(int howManyFlocks, std::vector<int>& sizes)
 	{
 		if(singletonFlag==false)
 		{
-			singleton= new SimulationWorld();
+			singleton= new SimulationWorld(howManyFlocks,sizes);
 		}
 		return singleton;
 	}
@@ -118,13 +119,19 @@ public:
 	{
 		return howManyFlocks;
 	}
-	void createFlocks(int howMany);
-	std::vector<Fish*> getAllFish();
+	void showWorld();
+	void createFlocks(int howMany,std::vector<int>&sizes);
+	std::vector<Ogre::Vector3> & getAllFishPositions();
+	void setAllFishPositionsAndFlocks();
+	std::vector<int> & getAllFishFlocks();
 private:
-	SimulationWorld()
+	SimulationWorld(int howManyFlocks, std::vector<int> & sizes)
 	{
 		if(singleton==0)
 		{
+			setHowManyFlocks(howManyFlocks);
+			createFlocks(getHowManyFlocks(),sizes);
+			setAllFishPositionsAndFlocks();
 			singletonFlag=true;
 		}
 	}
@@ -134,6 +141,8 @@ private:
 	static bool singletonFlag;
 	std::vector<Flock*>flocks;
 	int howManyFlocks;
+	std::vector<Ogre::Vector3>allFishPositions; //allFishPositions[i] - positions of fish 'number' i; needed in ogre module
+	std::vector<int> allFishFlocks; //allFishFlocks[i] - flock id of fish 'number' i; needed in ogre module
 };
 
 #endif 
