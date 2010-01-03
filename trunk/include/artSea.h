@@ -41,6 +41,41 @@ LGPL like the rest of the OGRE engine.
 
 const char* ARTSEA_LOG_FILE_NAME = "artSea.log";
 
+//--------------------------------------------------------
+class AnimationEntity
+{
+public:
+	AnimationEntity(Entity *mEntity,SceneNode *mNode, Ogre::Real mSwimSpeed,
+		Ogre::Vector3 mDirection): 
+		mEntity(mEntity),
+		mNode(mNode),
+		mSwimSpeed(mSwimSpeed),
+		mDistance(mDistance),
+		mDirection(mDirection),
+		mDestination(mDestination){}
+
+	void setInitialValues(Entity* mEntity, SceneNode *mNode, Ogre::Real mSwimSpeed,
+			Ogre::Vector3 mDirection)
+	{
+		this->mEntity=mEntity;
+		this->mNode=mNode;
+		this->mSwimSpeed=mSwimSpeed;
+		this->mDirection=mDirection;
+	}
+	void addMovement(Ogre::Vector3 position)
+	{
+		mSwimList.push_back(position);
+	}
+
+	Entity *mEntity;
+	SceneNode *mNode;
+	std::deque<Ogre::Vector3>mSwimList;
+	Ogre::Real mSwimSpeed;
+	Ogre::Real mDistance;
+	Ogre::Vector3 mDirection;
+	Ogre::Vector3 mDestination;
+
+};
 
 class artSeaApp : public BaseApplication
 {
@@ -98,14 +133,32 @@ protected:
 	Ogre::Real testSharedReal;
 	Ogre::String testSharedString;
 
+	static const int getMaxNumberOfFish()
+	{
+		return MAX_NUMBER_OF_FISH;
+	}
+	//animation
+	bool nextLocation(AnimationEntity * ae);
+
 private:
 	std::vector<Entity*>fishEntities;
 	std::vector<SceneNode*> fishNodes;
-	std::vector<Vector3>mSwimList;
 	int howManyFish;
+	static const int MAX_NUMBER_OF_FISH=2000;
+	//animation variables
+	//AnimationState *mAnimationState;
+	/**std::vector<Entity*> mEntities;
+	std::vector<SceneNode*>mNodes;
+	std::deque<Ogre::Vector3> mSwimLists[MAX_NUMBER_OF_FISH];
+	std::vector<Ogre::Real> mSwimSpeeds;
+	std::vector<Ogre::Real> mDistances;
+	std::vector<Ogre::Vector3> mDirections;
+	*/
+	std::vector<AnimationEntity *> animationEntities;
+
 };
 
-
+//-------------------------------------------------
 class FlockDescription
 {
 public:
@@ -128,5 +181,6 @@ private:
 	String modelFileName;
 	int visibility;
 };
+
 
 #endif // #ifndef __artSea_h_
