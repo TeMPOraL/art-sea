@@ -60,9 +60,6 @@ artSeaApp::artSeaApp(void)
 	fixedStepRate = DEFAULT_FIXED_STEP_SIMULATION_RATE;
 	fixedStepDTMax = DEFAULT_FIXED_STEP_SIMULATION_DT_MAX;
 	fixedStepMaxUpdatesPerFrame = DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME;
-	//ANIMATION
-	mSwimSpeed=35;
-	mDirection=Ogre::Vector3::ZERO;
 }
 
 //-------------------------------------------------------------------------------------
@@ -143,14 +140,14 @@ void artSeaApp::requestSimulationStateUpdate(Real deltaT)
 	ARTSEA_UNGUARD;
 }
 
-bool artSeaApp::nextLocation()
+bool artSeaApp::nextLocation(AnimationEntity *ae)
 {
-	if(mSwimList.empty())
+	if(ae->mSwimList.empty())
 		return false;
-	mDestination=mSwimList.front();
-	mSwimList.pop_front();
-	mDirection=mDestination-mNode->getPosition();
-	mDistance=mDirection.normalise();
+	ae->mDestination=ae->mSwimList.front();
+	ae->mSwimList.pop_front();
+	ae->mDirection=ae->mDestination-ae->mNode->getPosition();
+	ae->mDistance=ae->mDirection.normalise();
 	return true;
 }
 void artSeaApp::updateWorld(Real deltaT)
@@ -160,48 +157,62 @@ void artSeaApp::updateWorld(Real deltaT)
 	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT.");
 
 	ARTSEA_LOG << "World update.";
-	/**if(mDirection==Ogre::Vector3::ZERO)
+
+	ARTSEA_DEBUG_LOG<<"dlugosc";
+	ARTSEA_DEBUG_LOG<<animationEntities.size();
+
+	for(unsigned int i=0; i<animationEntities.size(); ++i)
 	{
-		if(nextLocation())
+		AnimationEntity *ae=animationEntities[i];
+		if(ae->mDirection==Ogre::Vector3::ZERO)
 		{
-			mAnimationState = mEntity->getAnimationState("Swim");
-            mAnimationState->setLoop(true);
-            mAnimationState->setEnabled(true);
-		}
-	}
-	else
-	{
-		Real move = mSwimSpeed*deltaT;
-		mDistance-=move;
-		if(mDistance<=0.0f)
-		{
-			mNode->setPosition(mDestination);
-			mDirection=Vector3::ZERO;
-			if(!nextLocation()) // the end of animations
-			{
-				mAnimationState = mEntity->getAnimationState("Idle");
-                mAnimationState->setLoop(true);
-                mAnimationState->setEnabled(true);
-			}
-			else // rotations
-			{
-				Vector3 src = mNode->getOrientation() * Vector3::UNIT_X;
-				if ((1.0f + src.dotProduct(mDirection)) < 0.0001f) 
-				{
-					mNode->yaw(Degree(180));
-				}
-				else
-				{
-					Ogre::Quaternion quat = src.getRotationTo(mDirection);
-					mNode->rotate(quat);
-				} 
-			}
+			ARTSEA_DEBUG_LOG<<"ok";
+			nextLocation(ae);
 		}
 		else
 		{
-			mNode->translate(mDirection*move);
+			Real move = ae->mSwimSpeed*deltaT;
+			ae->mDistance-=move;
+			if(ae->mDistance<=0.0f)
+			{
+				ae->mNode->setPosition(ae->mDestination);
+				ae->mDirection=Vector3::ZERO;
+				if(nextLocation(ae)) // rotations
+				{
+					Vector3 src = ae->mNode->getOrientation() * Vector3::UNIT_X;
+					if ((1.0f + src.dotProduct(ae->mDirection)) < 0.0001f) 
+					{
+						ae->mNode->yaw(Degree(180));
+					}
+					else
+					{
+						Ogre::Quaternion quat = src.getRotationTo(ae->mDirection);
+						ae->mNode->rotate(quat);
+					} 
+				}
+			}
+			else
+			{
+				ae->mNode->translate(ae->mDirection*move);
+			}
 		}
-	}*/
+	}
+	//mAnimationState->addTime(deltaT);
+
+
+	/**Real move = mSwimSpeed*deltaT;
+	if(mSwimList.size()>0)
+	{
+	mDestination=mSwimList.front();
+	mSwimList.pop_front();
+	}
+	//ARTSEA_DEBUG_LOG<<"dlugosc listy";
+	//ARTSEA_DEBUG_LOG<<mSwimList.size();
+	//mDestination=Ogre::Vector3(100.0f,0.0f,100.0f);
+	mDirection=mDestination-mNode->getPosition();
+	mDistance=mDirection.normalise();
+	mNode->translate(mDirection*move);*/
+
 
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
 	//ARTSEA_ASSERT(0, "Should never get here.");
@@ -233,6 +244,7 @@ void artSeaApp::createScene(void)
 	ARTSEA_DEBUG_LOG<<positions.size();
 	for(unsigned int i=0; i<positions.size(); ++i)
 	{
+
 		ARTSEA_DEBUG_LOG<<positions[i].x<<positions[i].y<<positions[i].z;
 		String name="fish";
 		String postfix = lexical_cast<String>(i);
@@ -246,15 +258,26 @@ void artSeaApp::createScene(void)
 		fishNodes.push_back(mSceneMgr->getRootSceneNode()->createChildSceneNode());
 		fishNodes[i]->setPosition(positions[i]);
 		fishNodes[i]->attachObject(fishEntities[i]);
+		fishNodes[i]->scale(2,2,2);
 		if(modelName=="rybka.mesh")
 		{
-			fishNodes[i]->scale(5,5,5);
+			fishNodes[i]->scale(15,15,15);
 		}
 	}
 	//animation
-	mEntity=fishEntities[0];
-	mNode=fishNodes[0];
-	mSwimList.push_back(Ogre::Vector3(100.0f,0.0f,100.0f));
+
+	AnimationEntity *ae = new AnimationEntity(fishEntities[0],fishNodes[0],10,Ogre::Vector3::ZERO);
+	ae->addMovement(Ogre::Vector3(100.0f,0.0f,100.0f));
+	ae->addMovement(Ogre::Vector3(0.0f,0.0f,0.0f));
+	animationEntities.push_back(ae);
+	AnimationEntity *ae1=new AnimationEntity(fishEntities[1],fishNodes[1],10,Ogre::Vector3::ZERO);
+	ae1->addMovement(Ogre::Vector3(50.0f,0.0f,40.0f));
+	animationEntities.push_back(ae1);
+	AnimationEntity *ae2=new AnimationEntity(fishEntities[2],fishNodes[2],10,Ogre::Vector3::ZERO);
+	ae2->addMovement(Ogre::Vector3(30.0f,30.0f,80.0f));
+	animationEntities.push_back(ae2);
+
+
 	//the end of simulation test
 	////////////////////////////////////////////////////////////////////////////
 
