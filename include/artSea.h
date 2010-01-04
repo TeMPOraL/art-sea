@@ -38,6 +38,7 @@ LGPL like the rest of the OGRE engine.
 #include "ergoTwGui.h"
 
 #include<vector>
+#include"simulation.h"
 
 const char* ARTSEA_LOG_FILE_NAME = "artSea.log";
 
@@ -145,16 +146,8 @@ private:
 	std::vector<SceneNode*> fishNodes;
 	int howManyFish;
 	static const int MAX_NUMBER_OF_FISH=2000;
-	//animation variables
-	//AnimationState *mAnimationState;
-	/**std::vector<Entity*> mEntities;
-	std::vector<SceneNode*>mNodes;
-	std::deque<Ogre::Vector3> mSwimLists[MAX_NUMBER_OF_FISH];
-	std::vector<Ogre::Real> mSwimSpeeds;
-	std::vector<Ogre::Real> mDistances;
-	std::vector<Ogre::Vector3> mDirections;
-	*/
 	std::vector<AnimationEntity *> animationEntities;
+	SimulationWorld * ourWorld;
 
 };
 

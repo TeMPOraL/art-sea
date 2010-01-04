@@ -161,6 +161,15 @@ void artSeaApp::updateWorld(Real deltaT)
 	ARTSEA_DEBUG_LOG<<"dlugosc";
 	ARTSEA_DEBUG_LOG<<animationEntities.size();
 
+	//getting new positions - where we are going
+	for(int i=0; i<fishEntities.size(); ++i)
+	{
+		animationEntities.push_back(new AnimationEntity(fishEntities[i],fishNodes[i],5,Ogre::Vector3::ZERO));
+		std::vector<Ogre::Vector3> & movements = ourWorld->getAllFishNextPositions();
+		animationEntities.back()->addMovement(movements[i]);
+		animationEntities.back()->addMovement(movements[i]);
+	}
+
 	for(unsigned int i=0; i<animationEntities.size(); ++i)
 	{
 		AnimationEntity *ae=animationEntities[i];
@@ -197,23 +206,6 @@ void artSeaApp::updateWorld(Real deltaT)
 			}
 		}
 	}
-	//mAnimationState->addTime(deltaT);
-
-
-	/**Real move = mSwimSpeed*deltaT;
-	if(mSwimList.size()>0)
-	{
-	mDestination=mSwimList.front();
-	mSwimList.pop_front();
-	}
-	//ARTSEA_DEBUG_LOG<<"dlugosc listy";
-	//ARTSEA_DEBUG_LOG<<mSwimList.size();
-	//mDestination=Ogre::Vector3(100.0f,0.0f,100.0f);
-	mDirection=mDestination-mNode->getPosition();
-	mDistance=mDirection.normalise();
-	mNode->translate(mDirection*move);*/
-
-
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
 	//ARTSEA_ASSERT(0, "Should never get here.");
 
@@ -231,10 +223,10 @@ void artSeaApp::createScene(void)
 	srand(time(NULL));
 	int howManyFlocks=2; // howManyFlocks setting
 	std::vector<int>flockSizes;
-	flockSizes.push_back(7); //flockSizes setting
-	flockSizes.push_back(3);
+	flockSizes.push_back(100); //flockSizes setting
+	flockSizes.push_back(30);
 	std::vector<int> & sizes= flockSizes;
-	SimulationWorld *ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes);
+	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes);
 	std::vector<FlockDescription*> flockDesc;
 	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
 	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
@@ -242,6 +234,9 @@ void artSeaApp::createScene(void)
 	std::vector<int> & flocks = ourWorld->getAllFishFlocks();
 	int prev=0;
 	ARTSEA_DEBUG_LOG<<positions.size();
+
+	//creating entities and settingother ogre module stuff (entities,nodes,positions...) 
+	//based on simulation module
 	for(unsigned int i=0; i<positions.size(); ++i)
 	{
 
@@ -258,7 +253,7 @@ void artSeaApp::createScene(void)
 		fishNodes.push_back(mSceneMgr->getRootSceneNode()->createChildSceneNode());
 		fishNodes[i]->setPosition(positions[i]);
 		fishNodes[i]->attachObject(fishEntities[i]);
-		fishNodes[i]->scale(2,2,2);
+		//fishNodes[i]->scale(2,2,2);
 		if(modelName=="rybka.mesh")
 		{
 			fishNodes[i]->scale(15,15,15);
@@ -266,7 +261,7 @@ void artSeaApp::createScene(void)
 	}
 	//animation
 
-	AnimationEntity *ae = new AnimationEntity(fishEntities[0],fishNodes[0],10,Ogre::Vector3::ZERO);
+	/**AnimationEntity *ae = new AnimationEntity(fishEntities[0],fishNodes[0],10,Ogre::Vector3::ZERO);
 	ae->addMovement(Ogre::Vector3(100.0f,0.0f,100.0f));
 	ae->addMovement(Ogre::Vector3(0.0f,0.0f,0.0f));
 	animationEntities.push_back(ae);
@@ -275,7 +270,7 @@ void artSeaApp::createScene(void)
 	animationEntities.push_back(ae1);
 	AnimationEntity *ae2=new AnimationEntity(fishEntities[2],fishNodes[2],10,Ogre::Vector3::ZERO);
 	ae2->addMovement(Ogre::Vector3(30.0f,30.0f,80.0f));
-	animationEntities.push_back(ae2);
+	animationEntities.push_back(ae2); */
 
 
 	//the end of simulation test
