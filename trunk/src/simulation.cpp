@@ -2,8 +2,9 @@
 #include"Debug.h"
 #include<time.h>
 //====================================================
-// SimulationWorld (singleton)
+// Flock
 //====================================================
+
 void Flock::createFish(Ogre::Vector3 position)
 {
 	Fish * const fish= new Fish(position);
@@ -14,9 +15,11 @@ void Flock::createAllFish()
 	for(int i=0; i<flockSize; ++i)
 	{
 		int x,y,z;
-		x=rand()%15;
-		y=rand()%20;
-		z=rand()%8;
+		x=rand()%400;
+		y=rand()%200;
+		z=rand()%30;
+		x-=200;
+		y-=50;
 		createFish(Ogre::Vector3(x,y,z));
 	}
 }
@@ -34,17 +37,38 @@ bool Flock::canSeeEachOther(Fish a, Fish b)
 	}
 }
 
+//UpdateAllFish method finds the closest friend and calculates vector between the fish and the closest
+//friend. The method updates all fish with vectors between them and their cosest friends.
+//Further more, it updates fockDirection vector, from each fish point of view.
+//Each fish has visibleFlockDirection vector (flock direction from this fish point of view).
+//For each fish, the method add all visible friends' direction (vectors). Sum of these vectors
+// is visibleFlockDirection
 void Flock::updateAllFish()
 {
 	for(int i=0; i<getFlockSize(); ++i)
 	{
-		for(int j=i+1; j<getFlockSize(); ++j)
+		Fish * closestFriend=0;
+		Ogre::Real closestFriendDistance=fishInTheFlock[i]->getMyClosestFriendDistance();
+		for(int j=0; j<getFlockSize(); ++j)
 		{
 			if(canSeeEachOther(*fishInTheFlock[i], *fishInTheFlock[j]))
 			{
-
+				Ogre::Real friendDistance=getSquaredDistance(*fishInTheFlock[i], *fishInTheFlock[j]);
+				if(friendDistance<closestFriendDistance) //cosest Friend; needed for (rozdzielczoœæ)
+				{
+					closestFriend=fishInTheFlock[j];
+					closestFriendDistance=friendDistance;
+				}
+				if(j>i)
+				{
+					fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getDirection());
+					fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getDirection());
+				}
 			}
 		}
+		fishInTheFlock[i]->setMyNearestFriendDirection(closestFriend->getPosition()-fishInTheFlock[i]->getPosition());
+		closestFriend->setMyNearestFriendDirection(fishInTheFlock[i]->getPosition()-closestFriend->getPosition());
+		fishInTheFlock[i]->setMyClosestFriendDistance(closestFriendDistance);
 	}
 }
 
@@ -101,16 +125,7 @@ void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
 	/**return temp;
 }*/
 
-std::vector<Ogre::Vector3>&  SimulationWorld::getAllFishPositions()
-{
-	std::vector<Ogre::Vector3>& temp=allFishPositions;
-	return temp;
-}
 
-std::vector<int> & SimulationWorld::getAllFishFlocks()
-{
-	return allFishFlocks;
-}
 
 
 //creates vector with positions and adequate vector with flocks' ids
@@ -124,10 +139,12 @@ void SimulationWorld::setAllFishPositionsAndFlocks()
 		for(int j=0; j<flocks[i]->getFlockSize(); ++j)
 		{
 			allFishPositions.push_back(flocks[i]->getAllFish()[j]->getPosition());
+			allFishNextPositions.push_back(flocks[i]->getAllFish()[j]->getNextPosition());
 			allFishFlocks.push_back(i);
 		}
 	}
 }
+
 
 //debug log's positions & flocks of all fish
 void SimulationWorld::showWorld()

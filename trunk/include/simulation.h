@@ -3,7 +3,8 @@
 #include<ogre.h>
 #ifndef _artSea_Simulation_
 #define _artSea_Simulation_
-      
+   
+const Ogre::Real INFINITE_DISTANCE = 500000;
 //====================================================
 // Fish
 //====================================================
@@ -13,6 +14,7 @@ public:
 	Fish()
 	{
 		this->hunger=0;
+		myClosestFriendDistance=INFINITE_DISTANCE;
 		this->position= Ogre::Vector3(0,0,0);
 	}
 	Fish(Ogre::Vector3 position,int hunger=0)
@@ -26,10 +28,48 @@ public:
 	{
 		return position;
 	}
+	Ogre::Vector3 getNextPosition()
+	{
+		return nextPosition;
+	}
+	Ogre::Vector3 getDirection()
+	{
+		return myDirection;
+	}
+	void setMyNearestFriendDirection(Ogre::Vector3 direction)
+	{
+		myNearestFriendDirection=direction;
+	}
+	Ogre::Vector3 getMyNearestFriendDirection()
+	{
+		return myNearestFriendDirection;
+	}
+	//flock direction from this fish's point of view; based on it's visibility
+	void updateFlockDirection(Ogre::Vector3 visibleFriendDirection)
+	{
+		visibleFlockDirection+=visibleFriendDirection;
+	}
+	Ogre::Vector3 getVibibleFlockDirection()
+	{
+		return visibleFlockDirection;
+	}
+	Ogre::Real getMyClosestFriendDistance()
+	{
+		return myClosestFriendDistance;
+	}
+	void setMyClosestFriendDistance(Ogre::Real distance)
+	{
+		myClosestFriendDistance=distance;
+	}
+
 
 private:
 	Ogre::Vector3 position;
 	Ogre::Vector3 nextPosition;
+	Ogre::Vector3 myDirection;
+	Ogre::Vector3 visibleFlockDirection;
+	Ogre::Vector3 myNearestFriendDirection;
+	Ogre::Real myClosestFriendDistance;
 	int hunger;
 };
 
@@ -121,9 +161,21 @@ public:
 	}
 	void showWorld();
 	void createFlocks(int howMany,std::vector<int>&sizes);
-	std::vector<Ogre::Vector3> & getAllFishPositions();
+	std::vector<Ogre::Vector3> & getAllFishPositions()
+	{
+		std::vector<Ogre::Vector3>& temp=allFishPositions;
+		return temp;
+	}
+	std::vector<Ogre::Vector3> & getAllFishNextPositions()
+	{
+		std::vector<Ogre::Vector3>& temp=allFishNextPositions;
+		return temp;
+	}
+	std::vector<int> & getAllFishFlocks()
+	{
+		return allFishFlocks;
+	}
 	void setAllFishPositionsAndFlocks();
-	std::vector<int> & getAllFishFlocks();
 private:
 	SimulationWorld(int howManyFlocks, std::vector<int> & sizes)
 	{
@@ -142,6 +194,7 @@ private:
 	std::vector<Flock*>flocks;
 	int howManyFlocks;
 	std::vector<Ogre::Vector3>allFishPositions; //allFishPositions[i] - positions of fish 'number' i; needed in ogre module
+	std::vector<Ogre::Vector3>allFishNextPositions;
 	std::vector<int> allFishFlocks; //allFishFlocks[i] - flock id of fish 'number' i; needed in ogre module
 };
 
