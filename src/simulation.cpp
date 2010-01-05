@@ -45,31 +45,46 @@ bool Flock::canSeeEachOther(Fish a, Fish b)
 // is visibleFlockDirection
 void Flock::updateAllFish()
 {
+	ARTSEA_DEBUG_LOG<<"poczatek";
 	for(int i=0; i<getFlockSize(); ++i)
 	{
 		Fish * closestFriend=0;
+		
 		Ogre::Real closestFriendDistance=fishInTheFlock[i]->getMyClosestFriendDistance();
+		//ARTSEA_DEBUG_LOG<<"closest friend distance"<<closestFriendDistance;
+		//ARTSEA_DEBUG_LOG<<"iii"<<i;
 		for(int j=0; j<getFlockSize(); ++j)
 		{
-			if(canSeeEachOther(*fishInTheFlock[i], *fishInTheFlock[j]))
+			//ARTSEA_DEBUG_LOG<<"blablabla jest fajne";
+			//ARTSEA_DEBUG_LOG<<j;
+			if(i!=j && canSeeEachOther(*fishInTheFlock[i], *fishInTheFlock[j]))
 			{
+				
 				Ogre::Real friendDistance=getSquaredDistance(*fishInTheFlock[i], *fishInTheFlock[j]);
+				//ARTSEA_DEBUG_LOG<<" friend distance"<<friendDistance;
 				if(friendDistance<closestFriendDistance) //cosest Friend; needed for (rozdzielczoœæ)
 				{
+					//ARTSEA_DEBUG_LOG<<"cool";
 					closestFriend=fishInTheFlock[j];
 					closestFriendDistance=friendDistance;
+					//ARTSEA_DEBUG_LOG<<"distance"<<friendDistance;
 				}
-				if(j>i)
-				{
-					fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getDirection());
-					fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getDirection());
-				}
+				//if(j>i)
+				//{
+				fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getDirection());
+					//fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getDirection());
+				//}
 			}
 		}
-		fishInTheFlock[i]->setMyNearestFriendDirection(closestFriend->getPosition()-fishInTheFlock[i]->getPosition());
-		closestFriend->setMyNearestFriendDirection(fishInTheFlock[i]->getPosition()-closestFriend->getPosition());
-		fishInTheFlock[i]->setMyClosestFriendDistance(closestFriendDistance);
+		if(closestFriend!=0)
+		{
+			fishInTheFlock[i]->setMyNearestFriendDirection(closestFriend->getPosition()-fishInTheFlock[i]->getPosition());
+			//closestFriend->setMyNearestFriendDirection(fishInTheFlock[i]->getPosition()-closestFriend->getPosition());
+			fishInTheFlock[i]->setMyClosestFriendDistance(closestFriendDistance);
+		}
+		fishInTheFlock[i]->calculateNextPosition();
 	}
+	ARTSEA_DEBUG_LOG<<"koniec";
 }
 
 
@@ -85,7 +100,8 @@ void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
 	ARTSEA_DEBUG_LOG<<howMany;
 	for(int i=0; i<howMany; ++i)
 	{
-		Flock * newFlock = new Flock(sizes[i],7);
+		Flock * newFlock = new Flock(sizes[i],30); //default visibiity - 7; fix it
+
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();
 	}
@@ -143,6 +159,15 @@ void SimulationWorld::setAllFishPositionsAndFlocks()
 			allFishFlocks.push_back(i);
 		}
 	}
+}
+
+void SimulationWorld::updateAllFish()
+{
+	for(int i=0; i<getHowManyFlocks(); ++i)
+	{
+		flocks[i]->updateAllFish();
+	}
+	setAllFishPositionsAndFlocks();
 }
 
 
