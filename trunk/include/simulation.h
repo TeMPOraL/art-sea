@@ -11,15 +11,19 @@ const Ogre::Real INFINITE_DISTANCE = 500000;
 class Fish
 {
 public:
-	Fish()
-	{
-		this->hunger=0;
-		myClosestFriendDistance=INFINITE_DISTANCE;
-		this->position= Ogre::Vector3(0,0,0);
-	}
+	Fish(): 
+	  hunger(0),
+	  position(Ogre::Vector3(0,0,0)),
+	  myClosestFriendDistance(INFINITE_DISTANCE),
+	  myDirection(Ogre::Vector3::ZERO),
+	  myNearestFriendDirection(Ogre::Vector3::ZERO),
+	  visibleFlockDirection(Ogre::Vector3::ZERO)
+	{ }
 	Fish(Ogre::Vector3 position,int hunger=0)
 	{
-		this->hunger=hunger;
+		Fish();
+		this->hunger=hunger; // cannot put it on initialization list because I call fish()
+							 // fish() init list would cover my initialization
 		this->position=position;
 	}
 	void upateFriend(Fish fish);
@@ -62,6 +66,13 @@ public:
 		myClosestFriendDistance=distance;
 	}
 
+	void calculateNextPosition()
+	{
+		Ogre::Vector3 movement;
+		movement=(-1*myNearestFriendDirection)+visibleFlockDirection;
+		nextPosition=position+movement;
+	}
+
 
 private:
 	Ogre::Vector3 position;
@@ -92,7 +103,6 @@ public:
 	}
 	
 	void createAllFish();
-	void updateAllFish();
 	int getFlockVisibility()
 	{
 		return visibility;
@@ -113,6 +123,7 @@ public:
 		std::vector<Fish* const> & ref = fishInTheFlock;
 		return ref;
 	}
+	void updateAllFish();
 	~Flock(){};
 
 private:
@@ -176,6 +187,9 @@ public:
 		return allFishFlocks;
 	}
 	void setAllFishPositionsAndFlocks();
+
+	void updateAllFish();
+
 private:
 	SimulationWorld(int howManyFlocks, std::vector<int> & sizes)
 	{

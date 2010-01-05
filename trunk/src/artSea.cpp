@@ -162,9 +162,12 @@ void artSeaApp::updateWorld(Real deltaT)
 	ARTSEA_DEBUG_LOG<<animationEntities.size();
 
 	//getting new positions - where we are going
-	for(int i=0; i<fishEntities.size(); ++i)
+	for(unsigned int i=0; i<fishEntities.size(); ++i)
 	{
 		animationEntities.push_back(new AnimationEntity(fishEntities[i],fishNodes[i],5,Ogre::Vector3::ZERO));
+		ourWorld->updateAllFish(); //odkompentowane powoduje zawieszenie
+		// jak to powinn obyæ z updateami i kiedy wstawiaæ nowy kierunek rucuh kiedy addMovememnt
+		// logika po³¹czenia algo z ogrem!!
 		std::vector<Ogre::Vector3> & movements = ourWorld->getAllFishNextPositions();
 		animationEntities.back()->addMovement(movements[i]);
 		animationEntities.back()->addMovement(movements[i]);
@@ -175,7 +178,7 @@ void artSeaApp::updateWorld(Real deltaT)
 		AnimationEntity *ae=animationEntities[i];
 		if(ae->mDirection==Ogre::Vector3::ZERO)
 		{
-			ARTSEA_DEBUG_LOG<<"ok";
+			//ARTSEA_DEBUG_LOG<<"ok";
 			nextLocation(ae);
 		}
 		else
@@ -223,10 +226,11 @@ void artSeaApp::createScene(void)
 	srand(time(NULL));
 	int howManyFlocks=2; // howManyFlocks setting
 	std::vector<int>flockSizes;
-	flockSizes.push_back(100); //flockSizes setting
+	flockSizes.push_back(10); //flockSizes setting ; 100
 	flockSizes.push_back(30);
 	std::vector<int> & sizes= flockSizes;
-	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes);
+	//creates howManyFlocks with given sizes; calls createFlocks() and setAllFishPositionsAndFlocks
+	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes); 
 	std::vector<FlockDescription*> flockDesc;
 	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
 	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
