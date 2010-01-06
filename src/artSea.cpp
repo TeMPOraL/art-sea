@@ -51,7 +51,8 @@ LGPL like the rest of the OGRE engine.
 static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
 static const Real DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME = 30.0;	//default max for simulations per frame
-
+static const int FIRST_FLOCK_SIZE=500;
+static const int SECOND_FLOCK_SIZE=40;
 
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)
@@ -140,16 +141,6 @@ void artSeaApp::requestSimulationStateUpdate(Real deltaT)
 	ARTSEA_UNGUARD;
 }
 
-bool artSeaApp::nextLocation(AnimationEntity *ae)
-{
-	if(ae->mSwimList.empty())
-		return false;
-	ae->mDestination=ae->mSwimList.front();
-	ae->mSwimList.pop_front();
-	ae->mDirection=ae->mDestination-ae->mNode->getPosition();
-	ae->mDistance=ae->mDirection.normalise();
-	return true;
-}
 void artSeaApp::updateWorld(Real deltaT)
 {
 	ARTSEA_GUARD(artSeaApp::updateWorld);
@@ -161,54 +152,13 @@ void artSeaApp::updateWorld(Real deltaT)
 	ARTSEA_DEBUG_LOG<<"dlugosc";
 	ARTSEA_DEBUG_LOG<<animationEntities.size();
 
-	//getting new positions - where we are going
+	ourWorld->updateAllFish(deltaT); 
+	std::vector<Ogre::Vector3> & newPositions = ourWorld->getAllFishPositions(); // next position
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
-	{
-		animationEntities.push_back(new AnimationEntity(fishEntities[i],fishNodes[i],5,Ogre::Vector3::ZERO));
-		ourWorld->updateAllFish(); //odkompentowane powoduje zawieszenie
-		// jak to powinn obyæ z updateami i kiedy wstawiaæ nowy kierunek rucuh kiedy addMovememnt
-		// logika po³¹czenia algo z ogrem!!
-		std::vector<Ogre::Vector3> & movements = ourWorld->getAllFishNextPositions();
-		animationEntities.back()->addMovement(movements[i]);
-		animationEntities.back()->addMovement(movements[i]);
+	{								 
+		fishNodes[i]->setPosition(newPositions[i]);									
 	}
 
-	for(unsigned int i=0; i<animationEntities.size(); ++i)
-	{
-		AnimationEntity *ae=animationEntities[i];
-		if(ae->mDirection==Ogre::Vector3::ZERO)
-		{
-			//ARTSEA_DEBUG_LOG<<"ok";
-			nextLocation(ae);
-		}
-		else
-		{
-			Real move = ae->mSwimSpeed*deltaT;
-			ae->mDistance-=move;
-			if(ae->mDistance<=0.0f)
-			{
-				ae->mNode->setPosition(ae->mDestination);
-				ae->mDirection=Vector3::ZERO;
-				if(nextLocation(ae)) // rotations
-				{
-					Vector3 src = ae->mNode->getOrientation() * Vector3::UNIT_X;
-					if ((1.0f + src.dotProduct(ae->mDirection)) < 0.0001f) 
-					{
-						ae->mNode->yaw(Degree(180));
-					}
-					else
-					{
-						Ogre::Quaternion quat = src.getRotationTo(ae->mDirection);
-						ae->mNode->rotate(quat);
-					} 
-				}
-			}
-			else
-			{
-				ae->mNode->translate(ae->mDirection*move);
-			}
-		}
-	}
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
 	//ARTSEA_ASSERT(0, "Should never get here.");
 
@@ -226,8 +176,8 @@ void artSeaApp::createScene(void)
 	srand(time(NULL));
 	int howManyFlocks=2; // howManyFlocks setting
 	std::vector<int>flockSizes;
-	flockSizes.push_back(10); //flockSizes setting ; 100
-	flockSizes.push_back(30);
+	flockSizes.push_back(FIRST_FLOCK_SIZE); //flockSizes setting ; 100
+	flockSizes.push_back(SECOND_FLOCK_SIZE);
 	std::vector<int> & sizes= flockSizes;
 	//creates howManyFlocks with given sizes; calls createFlocks() and setAllFishPositionsAndFlocks
 	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes); 
@@ -263,20 +213,6 @@ void artSeaApp::createScene(void)
 			fishNodes[i]->scale(15,15,15);
 		}
 	}
-	//animation
-
-	/**AnimationEntity *ae = new AnimationEntity(fishEntities[0],fishNodes[0],10,Ogre::Vector3::ZERO);
-	ae->addMovement(Ogre::Vector3(100.0f,0.0f,100.0f));
-	ae->addMovement(Ogre::Vector3(0.0f,0.0f,0.0f));
-	animationEntities.push_back(ae);
-	AnimationEntity *ae1=new AnimationEntity(fishEntities[1],fishNodes[1],10,Ogre::Vector3::ZERO);
-	ae1->addMovement(Ogre::Vector3(50.0f,0.0f,40.0f));
-	animationEntities.push_back(ae1);
-	AnimationEntity *ae2=new AnimationEntity(fishEntities[2],fishNodes[2],10,Ogre::Vector3::ZERO);
-	ae2->addMovement(Ogre::Vector3(30.0f,30.0f,80.0f));
-	animationEntities.push_back(ae2); */
-
-
 	//the end of simulation test
 	////////////////////////////////////////////////////////////////////////////
 
@@ -298,12 +234,6 @@ void artSeaApp::createScene(void)
 	CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow");
 	CEGUI::MouseCursor::getSingleton().show( );
 	setupEventHandlers();
-
-	//ogre head example
-	/** Entity* ogreHead = mSceneMgr->createEntity("Head", "rybka.mesh");
-	SceneNode* headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
-	headNode->scale(15,15,15);
-	headNode->attachObject(ogreHead); */
 
 	// Set ambient light
 	mSceneMgr->setAmbientLight(ColourValue(0.5, 0.5, 0.5));
