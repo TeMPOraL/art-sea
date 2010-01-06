@@ -4,7 +4,10 @@
 #ifndef _artSea_Simulation_
 #define _artSea_Simulation_
    
-const Ogre::Real INFINITE_DISTANCE = 500000;
+static const Ogre::Real INFINITE_DISTANCE = 500000;
+static const int DEFAULT_VISIBILITY=70;
+static const int CLOSE_FRIENDS_DISTANCE=30;
+static const int DEFAULT_FLOCK_SIZE=50;
 //====================================================
 // Fish
 //====================================================
@@ -14,9 +17,8 @@ public:
 	Fish(): 
 	  hunger(0),
 	  position(Ogre::Vector3(0,0,0)),
-	  myClosestFriendDistance(INFINITE_DISTANCE),
-	  myDirection(Ogre::Vector3::ZERO),
-	  myNearestFriendDirection(Ogre::Vector3::ZERO),
+	  force(Ogre::Vector3(1,1,1)),
+	  myNearestFriendsDirection(Ogre::Vector3::ZERO),
 	  visibleFlockDirection(Ogre::Vector3::ZERO)
 	{ }
 	Fish(Ogre::Vector3 position,int hunger=0)
@@ -26,61 +28,57 @@ public:
 							 // fish() init list would cover my initialization
 		this->position=position;
 	}
-	void upateFriend(Fish fish);
-	void updateEnemy(Fish fish);
+	//void upateFriend(Fish fish);
+	//void updateEnemy(Fish fish);
 	Ogre::Vector3 getPosition()
 	{
 		return position;
 	}
-	Ogre::Vector3 getNextPosition()
+	void updateMyNearestFriendsDirection(Ogre::Vector3 direction)
 	{
-		return nextPosition;
-	}
-	Ogre::Vector3 getDirection()
-	{
-		return myDirection;
-	}
-	void setMyNearestFriendDirection(Ogre::Vector3 direction)
-	{
-		myNearestFriendDirection=direction;
+		this->myNearestFriendsDirection+=direction;
 	}
 	Ogre::Vector3 getMyNearestFriendDirection()
 	{
-		return myNearestFriendDirection;
+		return myNearestFriendsDirection;
 	}
 	//flock direction from this fish's point of view; based on it's visibility
 	void updateFlockDirection(Ogre::Vector3 visibleFriendDirection)
 	{
-		visibleFlockDirection+=visibleFriendDirection;
+		this->visibleFlockDirection+=visibleFriendDirection;
 	}
 	Ogre::Vector3 getVibibleFlockDirection()
 	{
 		return visibleFlockDirection;
 	}
-	Ogre::Real getMyClosestFriendDistance()
+	//myNearestFriendsDirection - vector between the fish and it's friends
+	//resolution - fish doesn't want to be too close to it's friend's; goes oposite direction
+	//all fish try to go the same direction = visibleFlockDirection
+	void calculateForce()
 	{
-		return myClosestFriendDistance;
+		//force=0.1*((-0.5*myNearestFriendsDirection)+visibleFlockDirection+200*visibleFlockCenter); //0.5 wspó³czynnik; fix it; tak wiem zabijesz mnie za to
+		force=visibleFlockCenter;
 	}
-	void setMyClosestFriendDistance(Ogre::Real distance)
+	Ogre::Vector3 getForce()
 	{
-		myClosestFriendDistance=distance;
+		return force;
 	}
-
-	void calculateNextPosition()
+	void updatePosition(Ogre::Real deltaT)
 	{
-		Ogre::Vector3 movement;
-		movement=(-1*myNearestFriendDirection)+visibleFlockDirection;
-		nextPosition=position+movement;
+		this->position+=(0.5*force*deltaT*deltaT); // physics
+	}
+	void updateVisibleFlockCenter(Ogre::Vector3 meFriendDistance) //vector between this fish and the other visible fish
+	{
+		visibleFlockCenter+=meFriendDistance;
 	}
 
 
 private:
 	Ogre::Vector3 position;
-	Ogre::Vector3 nextPosition;
-	Ogre::Vector3 myDirection;
 	Ogre::Vector3 visibleFlockDirection;
-	Ogre::Vector3 myNearestFriendDirection;
-	Ogre::Real myClosestFriendDistance;
+	Ogre::Vector3 myNearestFriendsDirection;
+	Ogre::Vector3 visibleFlockCenter;
+	Ogre::Vector3 force; // computed; based on floclDirection and NearestFriends
 	int hunger;
 };
 
@@ -96,7 +94,7 @@ public:
 		flockSize=1;
 	};
 	//positions of fish in the flock setting randomly
-	Flock(int howMany, int visibility)
+	Flock(int howMany, int visibility=DEFAULT_VISIBILITY)
 	{
 		this->flockSize=howMany;
 		this->visibility=visibility;
@@ -123,16 +121,28 @@ public:
 		std::vector<Fish* const> & ref = fishInTheFlock;
 		return ref;
 	}
-	void updateAllFish();
+	void updateAllFish(Ogre::Real deltaT);
 	~Flock(){};
 
 private:
 	void createFish(Ogre::Vector3 position);
 	//TODO optimalization problem; the fact that one fish can see another
 	//doesn't mean the second one can see the first one. For right now - ok; later - to change
-	bool canSeeEachOther(Fish a, Fish b); // this function is to optimalize algorithms. Can be used only 
+ // this function is to optimalize algorithms. Can be used only 
 										  // for fish from the same folk==fish having the same visibility
 										  //fish which can see everything around
+	bool Flock::canSeeEachOther(Fish a, Fish b)
+{
+	Ogre::Vector3 posA=a.getPosition();
+	if(getSquaredDistance(a,b)<getFlockVisibility()*getFlockVisibility())
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 private:
 	std::vector<Fish* const> fishInTheFlock;	//fish which belong to this flock
@@ -177,18 +187,13 @@ public:
 		std::vector<Ogre::Vector3>& temp=allFishPositions;
 		return temp;
 	}
-	std::vector<Ogre::Vector3> & getAllFishNextPositions()
-	{
-		std::vector<Ogre::Vector3>& temp=allFishNextPositions;
-		return temp;
-	}
 	std::vector<int> & getAllFishFlocks()
 	{
 		return allFishFlocks;
 	}
 	void setAllFishPositionsAndFlocks();
 
-	void updateAllFish();
+	void updateAllFish(Ogre::Real deltaT);
 
 private:
 	SimulationWorld(int howManyFlocks, std::vector<int> & sizes)
@@ -208,7 +213,6 @@ private:
 	std::vector<Flock*>flocks;
 	int howManyFlocks;
 	std::vector<Ogre::Vector3>allFishPositions; //allFishPositions[i] - positions of fish 'number' i; needed in ogre module
-	std::vector<Ogre::Vector3>allFishNextPositions;
 	std::vector<int> allFishFlocks; //allFishFlocks[i] - flock id of fish 'number' i; needed in ogre module
 };
 
