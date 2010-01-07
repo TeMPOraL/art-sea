@@ -109,16 +109,17 @@ public:
 	{
 		return flockSize;
 	}
-	Ogre::Real getSquaredDistance(Fish a, Fish b)
+	Ogre::Real getSquaredDistance(Fish *a, Fish *b)
 	{ 
-		return a.getPosition().squaredDistance(b.getPosition());		
+		return a->getPosition().squaredDistance(b->getPosition());		
 	}
 	//TODO: check pointer. This returs cons reference to a vector, which has
 	//pointers to fish. We cannot change pointer to this vector, but what about
 	//fish? Check & make sure it's corrent. Everything const! Const references
-	const std::vector<Fish*const >& getAllFish()
+	const std::vector<Fish*
+	>& getAllFish()
 	{
-		std::vector<Fish* const> & ref = fishInTheFlock;
+		std::vector<Fish*> & ref = fishInTheFlock;
 		return ref;
 	}
 	void updateAllFish(Ogre::Real deltaT);
@@ -131,9 +132,9 @@ private:
  // this function is to optimalize algorithms. Can be used only 
 										  // for fish from the same folk==fish having the same visibility
 										  //fish which can see everything around
-	bool Flock::canSeeEachOther(Fish a, Fish b)
+	bool Flock::canSeeEachOther(Fish *a, Fish *b)
 {
-	Ogre::Vector3 posA=a.getPosition();
+	//Ogre::Vector3 posA=a->getPosition();
 	if(getSquaredDistance(a,b)<getFlockVisibility()*getFlockVisibility())
 	{
 		return true;
@@ -145,7 +146,7 @@ private:
 }
 
 private:
-	std::vector<Fish* const> fishInTheFlock;	//fish which belong to this flock
+	std::vector<Fish*> fishInTheFlock;	//fish which belong to this flock
 	//TODO  right know fish can see everywhere around; change it!
 	int visibility;				//how far each fish can see; the same for all fish from the flock;
 								//fish can see everywhere arund in the sphere. visibility=radius of this sphere
