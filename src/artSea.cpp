@@ -51,7 +51,7 @@ LGPL like the rest of the OGRE engine.
 static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
 static const Real DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME = 30.0;	//default max for simulations per frame
-static const int FIRST_FLOCK_SIZE=500;
+static const int FIRST_FLOCK_SIZE=1000;
 static const int SECOND_FLOCK_SIZE=40;
 
 //-------------------------------------------------------------------------------------
@@ -149,11 +149,13 @@ void artSeaApp::updateWorld(Real deltaT)
 
 	ARTSEA_LOG << "World update.";
 
-	ARTSEA_DEBUG_LOG<<"dlugosc";
-	ARTSEA_DEBUG_LOG<<animationEntities.size();
+	//ARTSEA_DEBUG_LOG<<"dlugosc";
+	//ARTSEA_DEBUG_LOG<<animationEntities.size();
 
 	ourWorld->updateAllFish(deltaT); 
 	std::vector<Ogre::Vector3> & newPositions = ourWorld->getAllFishPositions(); // next position
+	//newPositions.size() the same all the time. nothing changes; ok
+	//ARTSEA_LOG<<"fish nodes"<<fishNodes.size();
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
 	{								 
 		fishNodes[i]->setPosition(newPositions[i]);									

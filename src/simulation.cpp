@@ -33,13 +33,14 @@ void Flock::createAllFish()
 //based on these vectors calculates force where each fish should go and the next position
 void Flock::updateAllFish(Ogre::Real deltaT)
 {
-	ARTSEA_DEBUG_LOG<<"poczatek";
+	//ARTSEA_LOG<<"flock size"<<getFlockSize();
+	//flock sizes ok
 	for(int i=0; i<getFlockSize(); ++i)
 	{
 		for(int j=i+1; j<getFlockSize(); ++j)
 		{
 			//add to each fish friend direction vector, and vector between the fish and it's friend
-			if(canSeeEachOther(*fishInTheFlock[i], *fishInTheFlock[j]))
+			if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
 			{
 				
 				fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getForce());
@@ -47,7 +48,7 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 				fishInTheFlock[i]->updateVisibleFlockCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());
 				fishInTheFlock[j]->updateVisibleFlockCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());
 
-				if(getSquaredDistance(*fishInTheFlock[i],*fishInTheFlock[j])<=CLOSE_FRIENDS_DISTANCE) //a fish tries to be away not from all other fish he can see, but only from close friends
+				if(getSquaredDistance(fishInTheFlock[i],fishInTheFlock[j])<=CLOSE_FRIENDS_DISTANCE) //a fish tries to be away not from all other fish he can see, but only from close friends
 				{
 					fishInTheFlock[i]->updateMyNearestFriendsDirection(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());	//update...( vector between fish i and fish j)
 					fishInTheFlock[j]->updateMyNearestFriendsDirection(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());	
@@ -57,7 +58,6 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 		fishInTheFlock[i]->calculateForce();
 		fishInTheFlock[i]->updatePosition(deltaT);
 	}
-	ARTSEA_DEBUG_LOG<<"koniec";
 }
 
 
@@ -98,7 +98,6 @@ void SimulationWorld::updateAllFish(Ogre::Real deltaT)
 	{
 		flocks[i]->updateAllFish(deltaT);
 	}
-	//setAllFishPositionsAndFlocks();
 	allFishPositions.clear();
 	for(int i=0; i<getHowManyFlocks(); ++i)
 	{
