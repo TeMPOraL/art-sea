@@ -2,8 +2,8 @@
 #include"Debug.h"
 #include<time.h>
 static const int SCREEN_X=300;
-static const int SCREEN_Y=200;
-static const int SCREEN_Z=30;
+static const int SCREEN_Y=150;
+static const int SCREEN_Z=5;
 
 //====================================================
 // Flock
@@ -83,7 +83,7 @@ void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
 	//ARTSEA_DEBUG_LOG<<howMany;
 	for(int i=0; i<howMany; ++i)
 	{
-		Flock * newFlock = new Flock(sizes[i]); //default visibiity - 7; fix it
+		Flock * newFlock = new Flock(sizes[i]); 
 
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();

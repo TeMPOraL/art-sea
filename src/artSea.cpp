@@ -50,8 +50,8 @@ LGPL like the rest of the OGRE engine.
 static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
 static const Real DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME = 30.0;	//default max for simulations per frame
-static const int FIRST_FLOCK_SIZE=1500;
-static const int SECOND_FLOCK_SIZE=8;
+static const int FIRST_FLOCK_SIZE=600;
+static const int SECOND_FLOCK_SIZE=200;
 
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)

@@ -6,8 +6,8 @@
 #define _artSea_Simulation_
    
 static const Ogre::Real INFINITE_DISTANCE = 500000;
-static const int DEFAULT_VISIBILITY=50;
-static const int CLOSE_FRIENDS_DISTANCE=10;
+static const int DEFAULT_VISIBILITY=10;
+static const int CLOSE_FRIENDS_DISTANCE=5;
 static const int DEFAULT_FLOCK_SIZE=50;
 static const int RANDOM_VECTOR_LENGTH=2000;
 
@@ -39,7 +39,7 @@ public:
 							 // fish() init list would cover my initialization
 		this->position=position;
 		this->force= Ogre::Vector3(Fish::getRandomVector());
-		//ARTSEA_LOG<<"dora"<<force;
+		ARTSEA_LOG<<"dora"<<force;
 	}
 	//void upateFriend(Fish fish);
 	//void updateEnemy(Fish fish);
@@ -67,7 +67,16 @@ public:
 	//flock direction from this fish's point of view; based on it's visibility
 	void updateFlockDirection(Ogre::Vector3 visibleFriendDirection)
 	{
-		visibleFlockDirection+=visibleFriendDirection;
+		if(howManyCloseFriends>1)
+		{
+			visibleFlockDirection*=(howManyCloseFriends-1);
+			this->visibleFlockDirection+=visibleFriendDirection;
+			visibleFlockDirection/=howManyCloseFriends;
+		}
+		else
+		{
+			this->visibleFlockDirection+=visibleFriendDirection;
+		}
 	}
 	Ogre::Vector3 getVibibleFlockDirection()
 	{
@@ -78,7 +87,7 @@ public:
 	//all fish try to go the same direction = visibleFlockDirection
 	void calculateForce()
 	{
-		force=0.1*(visibleFlockDirection-myNearestFriendsDirection+visibleFlockCenter); //0.5 wspó³czynnik; fix it; tak wiem zabijesz mnie za to
+		force=(visibleFlockDirection-0.3*myNearestFriendsDirection+1.8*visibleFlockCenter); //0.5 wspó³czynnik; fix it; tak wiem zabijesz mnie za to
 		/**if(counter==0 && force!=Ogre::Vector3::ZERO)
 		{
 			ARTSEA_LOG<<"my force"<<"x"<<visibleFlockCenter.x<<"y"<<visibleFlockCenter.y<<"z"<<visibleFlockCenter.z;
@@ -95,7 +104,7 @@ public:
 	}
 	void updatePosition(Ogre::Real deltaT)
 	{
-		this->position+=(0.5*force*deltaT*deltaT); // physics m=1kg => |F|=|a|
+		this->position+=(0.25*force*deltaT*deltaT); // physics m=1kg => |F|=|a|
 	}
 	void updateVisibleFlockCenter(Ogre::Vector3 meFriendDistance) //vector between this fish and the other visible fish
 	{
@@ -130,9 +139,9 @@ public:
 private:
 	static Ogre::Vector3 getRandomVector()
 	{
-		int x=rand()%2*RANDOM_VECTOR_LENGTH-RANDOM_VECTOR_LENGTH;
-		int y=rand()%2*RANDOM_VECTOR_LENGTH-RANDOM_VECTOR_LENGTH;
-		int z=rand()%2*RANDOM_VECTOR_LENGTH-RANDOM_VECTOR_LENGTH;
+		int x=rand()%(2*RANDOM_VECTOR_LENGTH)-RANDOM_VECTOR_LENGTH;
+		int y=rand()%(2*RANDOM_VECTOR_LENGTH)-RANDOM_VECTOR_LENGTH;
+		int z=rand()%30 - 15;
 		return Ogre::Vector3(x,y,z);
 
 	}
