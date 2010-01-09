@@ -35,14 +35,22 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 {
 	//ARTSEA_LOG<<"flock size"<<getFlockSize();
 	//flock sizes ok
+
 	for(int i=0; i<getFlockSize(); ++i)
 	{
+		fishInTheFlock[i]->initForces();
+	}
+	for(int i=0; i<getFlockSize(); ++i)
+	{
+
 		for(int j=i+1; j<getFlockSize(); ++j)
 		{
 			//add to each fish friend direction vector, and vector between the fish and it's friend
 			if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
 			{
-				
+				fishInTheFlock[i]->incrementVisibleFish();
+				fishInTheFlock[j]->incrementVisibleFish();
+				//ARTSEA_LOG<<"dorotka"<<fishInTheFlock[j]->getForce();
 				fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getForce());
 				fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getForce());
 				fishInTheFlock[i]->updateVisibleFlockCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());
@@ -50,6 +58,8 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 
 				if(getSquaredDistance(fishInTheFlock[i],fishInTheFlock[j])<=CLOSE_FRIENDS_DISTANCE) //a fish tries to be away not from all other fish he can see, but only from close friends
 				{
+					fishInTheFlock[i]->incrementCloseFriends();
+					fishInTheFlock[j]->incrementCloseFriends();
 					fishInTheFlock[i]->updateMyNearestFriendsDirection(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());	//update...( vector between fish i and fish j)
 					fishInTheFlock[j]->updateMyNearestFriendsDirection(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());	
 				}
@@ -70,7 +80,7 @@ SimulationWorld *SimulationWorld::singleton=0;
 
 void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
 {
-	ARTSEA_DEBUG_LOG<<howMany;
+	//ARTSEA_DEBUG_LOG<<howMany;
 	for(int i=0; i<howMany; ++i)
 	{
 		Flock * newFlock = new Flock(sizes[i]); //default visibiity - 7; fix it
@@ -101,9 +111,10 @@ void SimulationWorld::updateAllFish(Ogre::Real deltaT)
 	allFishPositions.clear();
 	for(int i=0; i<getHowManyFlocks(); ++i)
 	{
+		std::vector<Fish *> fishTmpVector=flocks[i]->getAllFish();
 		for(int j=0; j<flocks[i]->getFlockSize(); ++j)
 		{
-			allFishPositions.push_back(flocks[i]->getAllFish()[j]->getPosition());
+			allFishPositions.push_back(fishTmpVector[j]->getPosition());
 		}
 	}
 }

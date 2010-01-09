@@ -1,32 +1,45 @@
 #include<cstdio>
 #include<vector>
 #include<ogre.h>
+#include"debug.h"
 #ifndef _artSea_Simulation_
 #define _artSea_Simulation_
    
 static const Ogre::Real INFINITE_DISTANCE = 500000;
-static const int DEFAULT_VISIBILITY=70;
-static const int CLOSE_FRIENDS_DISTANCE=30;
+static const int DEFAULT_VISIBILITY=50;
+static const int CLOSE_FRIENDS_DISTANCE=10;
 static const int DEFAULT_FLOCK_SIZE=50;
+static const int RANDOM_VECTOR_LENGTH=2000;
+
+static int counter=0;
 //====================================================
 // Fish
 //====================================================
 class Fish
 {
 public:
-	Fish(): 
+/**	Fish(): 
 	  hunger(0),
 	  position(Ogre::Vector3(0,0,0)),
-	  force(Ogre::Vector3(1,1,1)),
+	  //force(Ogre::Vector3(Fish::getRandomVector())),
 	  myNearestFriendsDirection(Ogre::Vector3::ZERO),
-	  visibleFlockDirection(Ogre::Vector3::ZERO)
-	{ }
-	Fish(Ogre::Vector3 position,int hunger=0)
+	  visibleFlockDirection(Ogre::Vector3::ZERO),
+	  howManyVisible(0),
+	  howManyCloseFriends(0) // we have ok force after initialization
+	  {} */
+
+	Fish(Ogre::Vector3 position,int hunger=0):
+	 // force(Ogre::Vector3(Fish::getRandomVector()),
+	  myNearestFriendsDirection(0,0,0),
+	  visibleFlockDirection(0,0,0),
+	  howManyVisible(0),
+	  howManyCloseFriends(0)
 	{
-		Fish();
 		this->hunger=hunger; // cannot put it on initialization list because I call fish()
 							 // fish() init list would cover my initialization
 		this->position=position;
+		this->force= Ogre::Vector3(Fish::getRandomVector());
+		//ARTSEA_LOG<<"dora"<<force;
 	}
 	//void upateFriend(Fish fish);
 	//void updateEnemy(Fish fish);
@@ -35,8 +48,17 @@ public:
 		return position;
 	}
 	void updateMyNearestFriendsDirection(Ogre::Vector3 direction)
-	{
-		this->myNearestFriendsDirection+=direction;
+	{	
+		if(howManyCloseFriends>1)
+		{
+			myNearestFriendsDirection*=(howManyCloseFriends-1);
+			this->myNearestFriendsDirection+=direction;
+			myNearestFriendsDirection/=howManyCloseFriends;
+		}
+		else
+		{
+			this->myNearestFriendsDirection+=direction;
+		}
 	}
 	Ogre::Vector3 getMyNearestFriendDirection()
 	{
@@ -45,7 +67,7 @@ public:
 	//flock direction from this fish's point of view; based on it's visibility
 	void updateFlockDirection(Ogre::Vector3 visibleFriendDirection)
 	{
-		this->visibleFlockDirection+=visibleFriendDirection;
+		visibleFlockDirection+=visibleFriendDirection;
 	}
 	Ogre::Vector3 getVibibleFlockDirection()
 	{
@@ -56,8 +78,16 @@ public:
 	//all fish try to go the same direction = visibleFlockDirection
 	void calculateForce()
 	{
-		//force=0.1*((-0.5*myNearestFriendsDirection)+visibleFlockDirection+200*visibleFlockCenter); //0.5 wspó³czynnik; fix it; tak wiem zabijesz mnie za to
-		force=visibleFlockCenter;
+		force=0.1*(visibleFlockDirection-myNearestFriendsDirection+visibleFlockCenter); //0.5 wspó³czynnik; fix it; tak wiem zabijesz mnie za to
+		/**if(counter==0 && force!=Ogre::Vector3::ZERO)
+		{
+			ARTSEA_LOG<<"my force"<<"x"<<visibleFlockCenter.x<<"y"<<visibleFlockCenter.y<<"z"<<visibleFlockCenter.z;
+			counter=1;
+		}*/
+		if(force==Ogre::Vector3::ZERO)
+		{
+			force=getRandomVector();
+		}
 	}
 	Ogre::Vector3 getForce()
 	{
@@ -65,20 +95,55 @@ public:
 	}
 	void updatePosition(Ogre::Real deltaT)
 	{
-		this->position+=(0.5*force*deltaT*deltaT); // physics
+		this->position+=(0.5*force*deltaT*deltaT); // physics m=1kg => |F|=|a|
 	}
 	void updateVisibleFlockCenter(Ogre::Vector3 meFriendDistance) //vector between this fish and the other visible fish
 	{
-		visibleFlockCenter+=meFriendDistance;
+		if(howManyVisible>1)
+		{
+			visibleFlockCenter*=(howManyVisible-1);
+			visibleFlockCenter+=meFriendDistance;
+			visibleFlockCenter/=howManyVisible;
+		}
+		else
+		{
+			visibleFlockCenter+=meFriendDistance;
+		}
+		
 	}
+	void initForces()
+	{
+		visibleFlockCenter=Ogre::Vector3::ZERO;
+		visibleFlockDirection=Ogre::Vector3::ZERO;
+		myNearestFriendsDirection=Ogre::Vector3::ZERO;
+		howManyCloseFriends=0;
+		howManyVisible=0;
+	}
+	void incrementVisibleFish()
+	{
+		++howManyVisible;
+	}
+	void incrementCloseFriends()
+	{
+		++howManyCloseFriends;
+	}
+private:
+	static Ogre::Vector3 getRandomVector()
+	{
+		int x=rand()%2*RANDOM_VECTOR_LENGTH-RANDOM_VECTOR_LENGTH;
+		int y=rand()%2*RANDOM_VECTOR_LENGTH-RANDOM_VECTOR_LENGTH;
+		int z=rand()%2*RANDOM_VECTOR_LENGTH-RANDOM_VECTOR_LENGTH;
+		return Ogre::Vector3(x,y,z);
 
-
+	}
 private:
 	Ogre::Vector3 position;
 	Ogre::Vector3 visibleFlockDirection;
 	Ogre::Vector3 myNearestFriendsDirection;
 	Ogre::Vector3 visibleFlockCenter;
 	Ogre::Vector3 force; // computed; based on floclDirection and NearestFriends
+	int howManyVisible;
+	int howManyCloseFriends;
 	int hunger;
 };
 
@@ -116,8 +181,7 @@ public:
 	//TODO: check pointer. This returs cons reference to a vector, which has
 	//pointers to fish. We cannot change pointer to this vector, but what about
 	//fish? Check & make sure it's corrent. Everything const! Const references
-	const std::vector<Fish*
-	>& getAllFish()
+	const std::vector<Fish*>& getAllFish()
 	{
 		std::vector<Fish*> & ref = fishInTheFlock;
 		return ref;
@@ -132,18 +196,18 @@ private:
  // this function is to optimalize algorithms. Can be used only 
 										  // for fish from the same folk==fish having the same visibility
 										  //fish which can see everything around
-	bool Flock::canSeeEachOther(Fish *a, Fish *b)
-{
-	//Ogre::Vector3 posA=a->getPosition();
-	if(getSquaredDistance(a,b)<getFlockVisibility()*getFlockVisibility())
+	bool canSeeEachOther(Fish *a, Fish *b)
 	{
-		return true;
+		//Ogre::Vector3 posA=a->getPosition();
+		if(getSquaredDistance(a,b)<getFlockVisibility()*getFlockVisibility())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
-	else
-	{
-		return false;
-	}
-}
 
 private:
 	std::vector<Fish*> fishInTheFlock;	//fish which belong to this flock
@@ -185,12 +249,13 @@ public:
 	void createFlocks(int howMany,std::vector<int>&sizes);
 	std::vector<Ogre::Vector3> & getAllFishPositions()
 	{
-		std::vector<Ogre::Vector3>& temp=allFishPositions;
-		return temp;
+		return allFishPositions;
 	}
 	std::vector<int> & getAllFishFlocks()
 	{
-		return allFishFlocks;
+		std::vector<int>&ref=allFishFlocks;
+		return ref;
+		//return allFishFlocks;
 	}
 	void setAllFishPositionsAndFlocks();
 
