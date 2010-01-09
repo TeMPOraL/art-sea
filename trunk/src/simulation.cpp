@@ -65,7 +65,8 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 				}
 			}
 		}
-		fishInTheFlock[i]->calculateForce();
+		fishInTheFlock[i]->calculateForce(1.5,0.2,1.8);
+		//fishInTheFlock[i]->calculateForce(flockDirectionFactor,resolutionFactor,flockCenterFactor);
 		fishInTheFlock[i]->updatePosition(deltaT);
 	}
 }
@@ -80,10 +81,14 @@ SimulationWorld *SimulationWorld::singleton=0;
 
 void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
 {
-	//ARTSEA_DEBUG_LOG<<howMany;
+     double directionFactor=1.5;
+	 double resolutionFactor=0.2;
+	 double centerFactor=1.8;
+	 double visibility=10;
+
 	for(int i=0; i<howMany; ++i)
 	{
-		Flock * newFlock = new Flock(sizes[i]); 
+		Flock * newFlock = new Flock(sizes[i],visibility,directionFactor,resolutionFactor,centerFactor); 
 
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();
