@@ -32,9 +32,8 @@ LGPL like the rest of the OGRE engine.
 ////////////////////////////////////////////////////
 // Dorota's TODOs:
 //* change all copied stuff to const references
-//* fix simulationWorld:: getAllFish() function
 //* think of rybka.position = new Position(...);  
-
+//* check ALL 'passing arguments' copy vs. pointers, fps at the beginning of simulation (init)
 
 //#include <Hydrax/Hydrax.h>
 //#include <Hydrax/Noise/Perlin/Perlin.h>
@@ -51,8 +50,8 @@ LGPL like the rest of the OGRE engine.
 static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
 static const Real DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME = 30.0;	//default max for simulations per frame
-static const int FIRST_FLOCK_SIZE=1000;
-static const int SECOND_FLOCK_SIZE=40;
+static const int FIRST_FLOCK_SIZE=1500;
+static const int SECOND_FLOCK_SIZE=8;
 
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)
@@ -147,7 +146,7 @@ void artSeaApp::updateWorld(Real deltaT)
 
 	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT.");
 
-	ARTSEA_LOG << "World update.";
+	//ARTSEA_LOG << "World update.";
 
 	//ARTSEA_DEBUG_LOG<<"dlugosc";
 	//ARTSEA_DEBUG_LOG<<animationEntities.size();
@@ -157,7 +156,8 @@ void artSeaApp::updateWorld(Real deltaT)
 	//newPositions.size() the same all the time. nothing changes; ok
 	//ARTSEA_LOG<<"fish nodes"<<fishNodes.size();
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
-	{								 
+	{
+		//Ogre::Vector3 currentPos=fishNodes[i]->getPosition();
 		fishNodes[i]->setPosition(newPositions[i]);									
 	}
 
@@ -215,6 +215,10 @@ void artSeaApp::createScene(void)
 			fishNodes[i]->scale(15,15,15);
 		}
 	}
+	/**for(unsigned int i=0; i<positions.size(); ++i)
+	{
+
+	}*/
 	//the end of simulation test
 	////////////////////////////////////////////////////////////////////////////
 
