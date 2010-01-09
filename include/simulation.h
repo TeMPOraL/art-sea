@@ -85,9 +85,10 @@ public:
 	//myNearestFriendsDirection - vector between the fish and it's friends
 	//resolution - fish doesn't want to be too close to it's friend's; goes oposite direction
 	//all fish try to go the same direction = visibleFlockDirection
-	void calculateForce()
+	void calculateForce(double flockDirectionFactor,double resolutionFactor,double flockCenterFactor)
 	{
-		force=(visibleFlockDirection-0.3*myNearestFriendsDirection+1.8*visibleFlockCenter); //0.5 wspó³czynnik; fix it; tak wiem zabijesz mnie za to
+		force=(flockDirectionFactor*visibleFlockDirection-
+		resolutionFactor*myNearestFriendsDirection+flockCenterFactor*visibleFlockCenter); 
 		/**if(counter==0 && force!=Ogre::Vector3::ZERO)
 		{
 			ARTSEA_LOG<<"my force"<<"x"<<visibleFlockCenter.x<<"y"<<visibleFlockCenter.y<<"z"<<visibleFlockCenter.z;
@@ -168,10 +169,13 @@ public:
 		flockSize=1;
 	};
 	//positions of fish in the flock setting randomly
-	Flock(int howMany, int visibility=DEFAULT_VISIBILITY)
+	Flock(int howMany,int visibility,double directionFactor,double resolutionFactor,double centerFactor):
+		flockSize(howMany),
+		visibility(visibility),
+		flockDirectionFactor(directionFactor),
+		resolutionFactor(resolutionFactor),
+		flockCenterFactor(centerFactor)	
 	{
-		this->flockSize=howMany;
-		this->visibility=visibility;
 	}
 	
 	void createAllFish();
@@ -224,6 +228,7 @@ private:
 	int visibility;				//how far each fish can see; the same for all fish from the flock;
 								//fish can see everywhere arund in the sphere. visibility=radius of this sphere
 	int flockSize;
+	double flockDirectionFactor,resolutionFactor,flockCenterFactor;
 };
 
 //====================================================
@@ -289,6 +294,7 @@ private:
 	int howManyFlocks;
 	std::vector<Ogre::Vector3>allFishPositions; //allFishPositions[i] - positions of fish 'number' i; needed in ogre module
 	std::vector<int> allFishFlocks; //allFishFlocks[i] - flock id of fish 'number' i; needed in ogre module
+	//int directionFactor,resolutionFactor,centerFactor;
 };
 
 #endif 
