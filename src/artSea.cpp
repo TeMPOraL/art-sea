@@ -160,7 +160,7 @@ void artSeaApp::updateWorld(Real deltaT)
 	}
 
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
-	ARTSEA_ASSERT(0, "Should never get here.");
+	//ARTSEA_ASSERT(0, "Should never get here.");
 
 	ARTSEA_UNGUARD;
 }

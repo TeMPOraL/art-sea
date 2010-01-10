@@ -35,19 +35,20 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 {
 	//ARTSEA_LOG<<"flock size"<<getFlockSize();
 	//flock sizes ok
-
+	
 	for(int i=0; i<getFlockSize(); ++i)
 	{
 		fishInTheFlock[i]->initForces();
 	}
 	for(int i=0; i<getFlockSize(); ++i)
 	{
-
+		int seenNumber=0;
 		for(int j=i+1; j<getFlockSize(); ++j)
 		{
 			//add to each fish friend direction vector, and vector between the fish and it's friend
 			if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
 			{
+				++seenNumber;
 				fishInTheFlock[i]->incrementVisibleFish();
 				fishInTheFlock[j]->incrementVisibleFish();
 				//ARTSEA_LOG<<"dorotka"<<fishInTheFlock[j]->getForce();
@@ -64,11 +65,13 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 					fishInTheFlock[j]->updateMyNearestFriendsDirection(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());	
 				}
 			}
+			//ARTSEA_LOG<<"seen friends  "<<seenNumber<<" "<<getFlockVisibility();
 		}
-		fishInTheFlock[i]->calculateForce(1.5,0.2,1.8);
-		//fishInTheFlock[i]->calculateForce(flockDirectionFactor,resolutionFactor,flockCenterFactor);
+		//fishInTheFlock[i]->calculateForce(1.5,0.2,1.8);
+		fishInTheFlock[i]->calculateForce(flockDirectionFactor,resolutionFactor,flockCenterFactor,deltaT);
 		fishInTheFlock[i]->updatePosition(deltaT);
 	}
+	
 }
 
 
@@ -81,9 +84,9 @@ SimulationWorld *SimulationWorld::singleton=0;
 
 void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
 {
-     double directionFactor=1.5;
-	 double resolutionFactor=0.2;
-	 double centerFactor=1.8;
+     double directionFactor=0.4;       //1.8;
+	 double resolutionFactor=1;  //0.2;
+	 double centerFactor=0.5;          //1.3;
 	 double visibility=10;
 
 	for(int i=0; i<howMany; ++i)
@@ -93,6 +96,24 @@ void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();
 	}
+	/**for(int i=0; i<howMany;++i)
+	{
+		std::vector<Fish *> tmp=flocks[i]->getAllFish();
+		for(unsigned int j=0; j<tmp.size(); ++j)
+		{
+			ARTSEA_LOG<<"fish position"<<tmp[j]->getPosition();
+		}
+	}
+	Fish *k=new Fish(Ogre::Vector3(-3,6,0));
+	Fish *l=new Fish(Ogre::Vector3(7,-5,0));
+	if(flocks[0]->canSeeEachOther(k,l))
+	{
+		ARTSEA_LOG<<"nie jest okej";
+	}
+	else
+	{
+		ARTSEA_LOG<<" jest okej";
+	}*/
 }
 
 void SimulationWorld::setAllFishPositionsAndFlocks()
