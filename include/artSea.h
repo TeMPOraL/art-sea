@@ -119,20 +119,15 @@ protected:
 							//then we would have a massive and fatal buildup of simulation updates, leaving no
 							//time for rendering
 
+	Real timescale;			//value that the deltaTime will be multiplied by - use this for "bullet time" effects
+							//or temporal acceleration ;) It doesn't affect simulation rate.
+	Real fixedStepsPerSecond;	//value for interactive tweaking - essencially inverse of fixedStepRate
+
 //	Hydrax::Hydrax* hydraxModule;	//module for realistic rendering of underwater environment
 
+	//Tweaking
 	ergoTw::TweakBarSupervisor* tweakBarSupervisor;
-
-	ergoTw::TweakBar *testTweakBar;
-	TwOgre::Window* testTweakWindow;
-
-	//AntTweakBar testing
-	TwOgre::ColorVariable *mWindowColor;
-	TwOgre::IntegerVariable *mWindowPosX, *mWindowPosY;
-	TwOgre::StringVariable *mWindowName;
-	
-	Ogre::Real testSharedReal;
-	Ogre::String testSharedString;
+	ergoTw::TweakBar* simulationTweakWindow;
 
 	static const int getMaxNumberOfFish()
 	{
