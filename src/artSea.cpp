@@ -51,8 +51,8 @@ static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
 static const Real DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME = 30.0;	//default max for simulations per frame
 static const Real MINIMUM_SIMULATION_STEPS_PER_SECOND = 0.00001;
-static const int FIRST_FLOCK_SIZE=600;
-static const int SECOND_FLOCK_SIZE=200;
+static const int FIRST_FLOCK_SIZE=6;
+static const int SECOND_FLOCK_SIZE=12;
 
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)
@@ -142,21 +142,25 @@ void artSeaApp::updateWorld(Real deltaT)
 {
 	ARTSEA_GUARD(artSeaApp::updateWorld);
 
-	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT.");
-
-	//ARTSEA_LOG << "World update.";
-
-	//ARTSEA_DEBUG_LOG<<"dlugosc";
-	//ARTSEA_DEBUG_LOG<<animationEntities.size();
-
-	ourWorld->updateAllFish(deltaT); 
+	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT."); 
+	
+	ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
 	std::vector<Ogre::Vector3> & newPositions = ourWorld->getAllFishPositions(); // next position
-	//newPositions.size() the same all the time. nothing changes; ok
-	//ARTSEA_LOG<<"fish nodes"<<fishNodes.size();
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
 	{
-		//Ogre::Vector3 currentPos=fishNodes[i]->getPosition();
-		fishNodes[i]->setPosition(newPositions[i]);									
+		Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3::UNIT_X; // why unit_x?
+		Ogre::Vector3 direction=fishNodes[i]->getPosition()- newPositions[i];
+		if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
+		{
+           fishNodes[i]->yaw(Degree(180));
+		}
+		else
+		{
+			Ogre::Quaternion quat=orientation.getRotationTo(direction);
+			fishNodes[i]->rotate(quat);
+		}
+		fishNodes[i]->setPosition(newPositions[i]);		
+		
 	}
 
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
@@ -180,7 +184,17 @@ void artSeaApp::createScene(void)
 	flockSizes.push_back(SECOND_FLOCK_SIZE);
 	std::vector<int> & sizes= flockSizes;
 	//creates howManyFlocks with given sizes; calls createFlocks() and setAllFishPositionsAndFlocks
-	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes); 
+	
+	//standard flocking parameters
+	for(int i=0; i<howManyFlocks; ++i)
+	{
+		resolutionFactors.push_back(0); //0.2
+		flockDirectionFactors.push_back(1);
+		flockCenterFactors.push_back(0); //1.3
+		frictions.push_back(2000);
+	}
+	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes,
+		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
 	std::vector<FlockDescription*> flockDesc;
 	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
 	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
@@ -285,6 +299,33 @@ void artSeaApp::createScene(void)
 		->group("Fixed step simulation")
 		->helpString("Each simulation frame has its deltaTime multiplied by this value. It does not, however, change the simulation rate.");
 
+
+	//==== FLOCKS TWEAKERS
+	flocksTweakWindow=tweakBarSupervisor->createTweakBar("Flocks","Flocks",Ogre::ColourValue::Green, "Tweak window for flocks parameters");
+	flocksTweakWindow->getTwOgreWindow()->setPosition(300,300);
+	for(int i=0; i<howManyFlocks; ++i)
+	{
+		String groupName="Flock "+lexical_cast<String>(i);
+		flocksTweakWindow->addRealVariable("resolution factor"+groupName,resolutionFactors[i],true)
+			->precision(2)
+			->group(groupName)
+			->helpString("Resolution factor - how strong resolution effects flock's movement");
+		flocksTweakWindow->addRealVariable("flock's direction factor"+groupName, 
+			flockDirectionFactors[i],true)
+			->precision(2)
+			->group(groupName)
+			->helpString("Flock's direction factor - how strong direction effects flock's movement");
+		flocksTweakWindow->addRealVariable("flock's center factor"+groupName, 
+			flockCenterFactors[i],true)
+			->precision(2)
+			->group(groupName)
+			->helpString("Flock's center factor - how strong flock's center effects flock's movement");
+		flocksTweakWindow->addRealVariable("friction"+groupName, frictions[i],true)
+			->precision(2)
+			->group(groupName)
+			->helpString("Friction factor");
+	}
+	//mSceneMgr->setSkyBox(true, "Examples/SpaceSkyBox"); 
 }
 
 void artSeaApp::chooseSceneManager(void)
