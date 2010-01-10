@@ -6,13 +6,13 @@
 #define _artSea_Simulation_
    
 static const Ogre::Real INFINITE_DISTANCE = 500000;
-static const int DEFAULT_VISIBILITY=10;
+static const int DEFAULT_VISIBILITY=40;
 static const int CLOSE_FRIENDS_DISTANCE=5;
 static const int DEFAULT_FLOCK_SIZE=50;
 static const int RANDOM_VECTOR_LENGTH=2000;
 
 static int counter=0;
-const float k=0.3;
+static const float k=2000;
 //====================================================
 // Fish
 //====================================================
@@ -41,6 +41,7 @@ public:
 		this->position=position;
 		this->force= Ogre::Vector3(Fish::getRandomVector());
 		ARTSEA_LOG<<"dora"<<force;
+		tmp=false;
 	}
 	//void upateFriend(Fish fish);
 	//void updateEnemy(Fish fish);
@@ -86,22 +87,26 @@ public:
 	//myNearestFriendsDirection - vector between the fish and it's friends
 	//resolution - fish doesn't want to be too close to it's friend's; goes oposite direction
 	//all fish try to go the same direction = visibleFlockDirection
-	void calculateForce(double flockDirectionFactor,double resolutionFactor,double flockCenterFactor, Ogre::Real deltaT)
+	void calculateForce(float flockDirectionFactor,float resolutionFactor,float flockCenterFactor, Ogre::Real deltaT)
 	{
-		force=(flockDirectionFactor*visibleFlockDirection-
+		/**force=(flockDirectionFactor*visibleFlockDirection-
 		resolutionFactor*myNearestFriendsDirection+flockCenterFactor*visibleFlockCenter); 
 		Ogre::Vector3 friction=k*(force/m)*deltaT; 
-		//ARTSEA_LOG<<"force"<<friction;
-		force-=friction;
-		/**if(tmp!=Ogre::Vector3::ZERO)
+		force-=friction; */
+		
+		//fish orientation test - ogre module
+		if(force.x>=100)
 		{
-			force=tmp;
-		}*/
-		/**if(counter==0 && force!=Ogre::Vector3::ZERO)
+			tmp=true;
+		}
+		if(tmp==true)
 		{
-			ARTSEA_LOG<<"my force"<<"x"<<visibleFlockCenter.x<<"y"<<visibleFlockCenter.y<<"z"<<visibleFlockCenter.z;
-			counter=1;
-		}*/
+			force-=Ogre::Vector3(20,0,0);
+		}
+		else
+		{
+			force+=Ogre::Vector3(20,0,0);
+		}
 	}
 	Ogre::Vector3 getForce()
 	{
@@ -160,6 +165,7 @@ private:
 	int howManyCloseFriends;
 	int hunger;
 	static const int m=1; // weight right now the same for all fish
+	bool tmp;
 };
 
 //====================================================
@@ -174,12 +180,13 @@ public:
 		flockSize=1;
 	};
 	//positions of fish in the flock setting randomly
-	Flock(int howMany,int visibility,double directionFactor,double resolutionFactor,double centerFactor):
+	Flock(int howMany,int visibility,float directionFactor,float resolutionFactor,float centerFactor,float frictionFactor):
 		flockSize(howMany),
 		visibility(visibility),
 		flockDirectionFactor(directionFactor),
 		resolutionFactor(resolutionFactor),
-		flockCenterFactor(centerFactor)	
+		flockCenterFactor(centerFactor),	
+		friction(frictionFactor)
 	{
 	}
 	
@@ -204,7 +211,7 @@ public:
 		std::vector<Fish*> & ref = fishInTheFlock;
 		return ref;
 	}
-	void updateAllFish(Ogre::Real deltaT);
+	void updateAllFish(Ogre::Real deltaT,float direction,float resolution,float center,float friction);
 	~Flock(){};
 
 private:
@@ -233,7 +240,8 @@ private:
 	int visibility;				//how far each fish can see; the same for all fish from the flock;
 								//fish can see everywhere arund in the sphere. visibility=radius of this sphere
 	int flockSize;
-	double flockDirectionFactor,resolutionFactor,flockCenterFactor;
+	float flockDirectionFactor,resolutionFactor,flockCenterFactor;
+	float friction;
 };
 
 //====================================================
@@ -248,11 +256,14 @@ public:
 		assert(singleton!=0);
 		singletonFlag=false;
 	}
-	static SimulationWorld* getSimulationWorld(int howManyFlocks, std::vector<int>& sizes)
+	static SimulationWorld* getSimulationWorld(int howManyFlocks, std::vector<int>& sizes,
+		std::vector<float>&directions,std::vector<float>&resolutions,std::vector<float>&centers,
+		std::vector<float>&frictions)
 	{
 		if(singletonFlag==false)
 		{
-			singleton= new SimulationWorld(howManyFlocks,sizes);
+			singleton= new SimulationWorld(howManyFlocks,sizes,directions,resolutions,centers,
+			frictions);
 		}
 		return singleton;
 	}
@@ -265,7 +276,8 @@ public:
 		return howManyFlocks;
 	}
 	void showWorld();
-	void createFlocks(int howMany,std::vector<int>&sizes);
+	void createFlocks(int howMany,std::vector<int>&sizes,std::vector<float>&directions,
+		std::vector<float>&resolutions,std::vector<float>&centers,std::vector<float>&frictions);
 	std::vector<Ogre::Vector3> & getAllFishPositions()
 	{
 		return allFishPositions;
@@ -278,15 +290,18 @@ public:
 	}
 	void setAllFishPositionsAndFlocks();
 
-	void updateAllFish(Ogre::Real deltaT);
+	void updateAllFish(Ogre::Real deltaT,std::vector<float>&direction,std::vector<float>&resolution,
+		std::vector<float>&center,std::vector<float>&frictions);
 
 private:
-	SimulationWorld(int howManyFlocks, std::vector<int> & sizes)
+	SimulationWorld(int howManyFlocks, std::vector<int> & sizes,
+		std::vector<float>&directions,std::vector<float>&resolutions,
+		std::vector<float>&centers,std::vector<float>&frictions)
 	{
 		if(singleton==0)
 		{
 			setHowManyFlocks(howManyFlocks);
-			createFlocks(getHowManyFlocks(),sizes);
+			createFlocks(getHowManyFlocks(),sizes,directions,resolutions,centers,frictions);
 			setAllFishPositionsAndFlocks();
 			singletonFlag=true;
 		}

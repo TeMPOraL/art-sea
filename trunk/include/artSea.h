@@ -98,6 +98,8 @@ protected:
 	virtual bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 	virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 
+
+
 protected:
 
 	void requestSimulationStateUpdate(Real deltaT);
@@ -128,6 +130,13 @@ protected:
 	//Tweaking
 	ergoTw::TweakBarSupervisor* tweakBarSupervisor;
 	ergoTw::TweakBar* simulationTweakWindow;
+	ergoTw::TweakBar* flocksTweakWindow;
+
+	//Flock parameters
+	std::vector<float> resolutionFactors;
+	std::vector<float> flockCenterFactors;
+	std::vector<float> flockDirectionFactors;
+	std::vector<float> frictions;
 
 	static const int getMaxNumberOfFish()
 	{

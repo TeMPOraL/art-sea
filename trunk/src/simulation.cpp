@@ -31,11 +31,15 @@ void Flock::createAllFish()
 //calculate the vector where the flock is going from each fish point of view
 //and calculate a vector between the fish and visible friends (distance)
 //based on these vectors calculates force where each fish should go and the next position
-void Flock::updateAllFish(Ogre::Real deltaT)
+void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, float center,float friction)
 {
 	//ARTSEA_LOG<<"flock size"<<getFlockSize();
 	//flock sizes ok
-	
+	this->flockDirectionFactor=direction;
+	this->resolutionFactor=resolution;
+	this->flockCenterFactor=center;
+	this->friction=friction;
+
 	for(int i=0; i<getFlockSize(); ++i)
 	{
 		fishInTheFlock[i]->initForces();
@@ -82,16 +86,19 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 bool SimulationWorld::singletonFlag=false;
 SimulationWorld *SimulationWorld::singleton=0;
 
-void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes)
+void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes,
+								   std::vector<float>&directions,std::vector<float>&resolutions,
+								   std::vector<float>&centers,std::vector<float>&frictions)
 {
-     double directionFactor=0.4;       //1.8;
+     /**double directionFactor=0.4;       //1.8;
 	 double resolutionFactor=1;  //0.2;
 	 double centerFactor=0.5;          //1.3;
-	 double visibility=10;
+	 double visibility=10;*/
+	float visibility=10;
 
 	for(int i=0; i<howMany; ++i)
 	{
-		Flock * newFlock = new Flock(sizes[i],visibility,directionFactor,resolutionFactor,centerFactor); 
+		Flock * newFlock = new Flock(sizes[i],visibility,directions[i],resolutions[i],centers[i],frictions[i]); 
 
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();
@@ -128,11 +135,12 @@ void SimulationWorld::setAllFishPositionsAndFlocks()
 	}
 }
 
-void SimulationWorld::updateAllFish(Ogre::Real deltaT)
+void SimulationWorld::updateAllFish(Ogre::Real deltaT,std::vector<float>&directions,
+	std::vector<float>&resolutions,std::vector<float>&centers,std::vector<float>&frictions)
 {
 	for(int i=0; i<getHowManyFlocks(); ++i)
 	{
-		flocks[i]->updateAllFish(deltaT);
+		flocks[i]->updateAllFish(deltaT,directions[i],resolutions[i],centers[i],frictions[i]);
 	}
 	allFishPositions.clear();
 	for(int i=0; i<getHowManyFlocks(); ++i)
@@ -154,5 +162,5 @@ void SimulationWorld::showWorld()
 	{
 		ARTSEA_DEBUG_LOG<<"positions:"<<allFishPositions[i].x<<allFishPositions[i].y<<
 			allFishPositions[i].z<<" "<<allFishFlocks[i];
-}
+	}
 }
