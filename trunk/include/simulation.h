@@ -12,6 +12,7 @@ static const int DEFAULT_FLOCK_SIZE=50;
 static const int RANDOM_VECTOR_LENGTH=2000;
 
 static int counter=0;
+const float k=0.3;
 //====================================================
 // Fish
 //====================================================
@@ -85,19 +86,22 @@ public:
 	//myNearestFriendsDirection - vector between the fish and it's friends
 	//resolution - fish doesn't want to be too close to it's friend's; goes oposite direction
 	//all fish try to go the same direction = visibleFlockDirection
-	void calculateForce(double flockDirectionFactor,double resolutionFactor,double flockCenterFactor)
+	void calculateForce(double flockDirectionFactor,double resolutionFactor,double flockCenterFactor, Ogre::Real deltaT)
 	{
 		force=(flockDirectionFactor*visibleFlockDirection-
 		resolutionFactor*myNearestFriendsDirection+flockCenterFactor*visibleFlockCenter); 
+		Ogre::Vector3 friction=k*(force/m)*deltaT; 
+		//ARTSEA_LOG<<"force"<<friction;
+		force-=friction;
+		/**if(tmp!=Ogre::Vector3::ZERO)
+		{
+			force=tmp;
+		}*/
 		/**if(counter==0 && force!=Ogre::Vector3::ZERO)
 		{
 			ARTSEA_LOG<<"my force"<<"x"<<visibleFlockCenter.x<<"y"<<visibleFlockCenter.y<<"z"<<visibleFlockCenter.z;
 			counter=1;
 		}*/
-		if(force==Ogre::Vector3::ZERO)
-		{
-			force=getRandomVector();
-		}
 	}
 	Ogre::Vector3 getForce()
 	{
@@ -105,7 +109,7 @@ public:
 	}
 	void updatePosition(Ogre::Real deltaT)
 	{
-		this->position+=(0.25*force*deltaT*deltaT); // physics m=1kg => |F|=|a|
+		this->position+=(0.5*(force/m)*deltaT*deltaT); // physics m=1kg => |F|=|a|
 	}
 	void updateVisibleFlockCenter(Ogre::Vector3 meFriendDistance) //vector between this fish and the other visible fish
 	{
@@ -155,6 +159,7 @@ private:
 	int howManyVisible;
 	int howManyCloseFriends;
 	int hunger;
+	static const int m=1; // weight right now the same for all fish
 };
 
 //====================================================
@@ -208,7 +213,7 @@ private:
 	//doesn't mean the second one can see the first one. For right now - ok; later - to change
  // this function is to optimalize algorithms. Can be used only 
 										  // for fish from the same folk==fish having the same visibility
-										  //fish which can see everything around
+public:	//CHANGE TO PRIVATE!!!1										  //fish which can see everything around
 	bool canSeeEachOther(Fish *a, Fish *b)
 	{
 		//Ogre::Vector3 posA=a->getPosition();
