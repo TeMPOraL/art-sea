@@ -50,6 +50,7 @@ LGPL like the rest of the OGRE engine.
 static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
 static const Real DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME = 30.0;	//default max for simulations per frame
+static const Real MINIMUM_SIMULATION_STEPS_PER_SECOND = 0.00001;
 static const int FIRST_FLOCK_SIZE=600;
 static const int SECOND_FLOCK_SIZE=200;
 
@@ -60,6 +61,11 @@ artSeaApp::artSeaApp(void)
 	fixedStepRate = DEFAULT_FIXED_STEP_SIMULATION_RATE;
 	fixedStepDTMax = DEFAULT_FIXED_STEP_SIMULATION_DT_MAX;
 	fixedStepMaxUpdatesPerFrame = DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME;
+	timescale = 1.0;
+	fixedStepsPerSecond = 30.0f;
+
+	tweakBarSupervisor = NULL;
+	simulationTweakWindow = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -81,25 +87,13 @@ artSeaApp::~artSeaApp(void)
 //================================================================
 bool artSeaApp::frameStarted(const FrameEvent& evt)
 {
-	ARTSEA_DEBUG_LOG << "WHAT THE HECK?" ;
 	//call superclass function
 	bool result = BaseApplication::frameStarted(evt);
 
-	ARTSEA_DEBUG_LOG << "POST-BACKCALL" ;
-
-
 //	hydraxModule->update(evt.timeSinceLastFrame);
 
-	// Update values from Window 2
-	testTweakWindow->setColor(mWindowColor->getColorValue());
-	testTweakWindow->setPosition(Ogre::Vector2(mWindowPosX->getIntegerValue(), mWindowPosY->getIntegerValue()));
-	//testTweakWindow->setTitle(mWindowName->getStringValue());
-
-	ARTSEA_DEBUG_LOG << "POST-TWOGRE" ;
 
 	tweakBarSupervisor->update();
-
-	ARTSEA_DEBUG_LOG << "This ever gets called?!?" ;
 
 	return (result && true);
 }
@@ -132,8 +126,12 @@ void artSeaApp::requestSimulationStateUpdate(Real deltaT)
 	while(fixedStepTimeAccumulator > fixedStepRate)
 	{
 		fixedStepTimeAccumulator -= fixedStepRate;
-		updateWorld(fixedStepRate);
+		updateWorld(fixedStepRate*timescale);
 	}
+
+	//update rate
+	ARTSEA_ASSERT(fixedStepRate >= MINIMUM_SIMULATION_STEPS_PER_SECOND, "Not enough simulations per second.");
+	fixedStepRate = 1.0/fixedStepsPerSecond;
 
 	ARTSEA_ASSERT(fixedStepTimeAccumulator >= 0, "Accumulator gone negative.");
 
@@ -162,7 +160,7 @@ void artSeaApp::updateWorld(Real deltaT)
 	}
 
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
-	//ARTSEA_ASSERT(0, "Should never get here.");
+	ARTSEA_ASSERT(0, "Should never get here.");
 
 	ARTSEA_UNGUARD;
 }
@@ -269,33 +267,23 @@ void artSeaApp::createScene(void)
 
 	tweakBarSupervisor = new ergoTw::TweakBarSupervisor(mWindow, mSceneMgr);
 
-	testTweakBar = tweakBarSupervisor->createTweakBar("Test Window", "ergoTwGui Test", Ogre::ColourValue(0.0, 0.0, 1.0, 0.7));
 
-	testTweakWindow = testTweakBar->getTwOgreWindow();
-
-	testTweakWindow->setPosition(Ogre::Vector2(mWindow->getWidth()-200, 0));
-	testTweakWindow->setSize(Ogre::Vector2(200, 210));
-
-	//Creation of TwOgre and ergoTw variables - an example:
-
-	mWindowColor = testTweakWindow->addColorVariable("Color", false, "", Ogre::ColourValue(1.0, 0.757, 0.145));
-	mWindowPosX = testTweakWindow->addIntegerVariable("X Pos", false, "", 0);
-	mWindowPosX->setLimits(0, mWindow->getWidth());
-	mWindowPosY = testTweakWindow->addIntegerVariable("Y Pos", false, "", 0);
-	mWindowPosY->setLimits(0, mWindow->getHeight());
-
-	testSharedReal = -1.23;
-	testSharedString = "HelloWorld";
-
-	testTweakBar->addRealVariable("Shared Real", testSharedReal)->range(0.0, 15.0, 0.3)->label("TestLabel")->group("Group1");
-	testTweakBar->addStringVariable("Shared String", testSharedString)->group("Group1");
-
-	//NOTE that with ergoTw we don't have to store our tweaker-variables anywhere - they are bound to real variables
-	//and the TweakBarSupervisor takes care of updating. We should keep the pointer to TweakBar though.
-
-	testTweakBar->addRealVariable("Same Shared Real", testSharedReal)->range(5.0, 10.0, 0.5)->label("YetAnotherTestLabel")->group("Group2");
-	testTweakBar->addStringVariable("Same Shared String", testSharedString)->group("Group2");
-
+	//==== REAL TWEAKERS
+	simulationTweakWindow = tweakBarSupervisor->createTweakBar("Simulation", "Simulation", Ogre::ColourValue::Blue, "Tweak window for core simulation parameters.");
+	simulationTweakWindow->addRealVariable("step duration", fixedStepRate, true)
+		->precision(4)
+		->group("Fixed step simulation")
+		->helpString("Single step duration - how long does it take in seconds.");
+	simulationTweakWindow->addRealVariable("steps per second", fixedStepsPerSecond)
+		->precision(4)
+		->range(MINIMUM_SIMULATION_STEPS_PER_SECOND, std::numeric_limits<Ogre::Real>::infinity(), 0.1)
+		->group("Fixed step simulation")
+		->helpString("Simulation steps per real-time second.");
+	simulationTweakWindow->addRealVariable("timescale", timescale)
+		->range(0.0, std::numeric_limits<Ogre::Real>::infinity(), 0.01)
+		->precision(2)
+		->group("Fixed step simulation")
+		->helpString("Each simulation frame has its deltaTime multiplied by this value. It does not, however, change the simulation rate.");
 
 }
 
