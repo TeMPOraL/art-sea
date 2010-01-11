@@ -12,7 +12,7 @@ static const int DEFAULT_FLOCK_SIZE=50;
 static const int RANDOM_VECTOR_LENGTH=2000;
 
 static int counter=0;
-static const float k=2000;
+static const float k=0.3;
 //====================================================
 // Fish
 //====================================================
@@ -34,7 +34,8 @@ public:
 	  myNearestFriendsDirection(0,0,0),
 	  visibleFlockDirection(0,0,0),
 	  howManyVisible(0),
-	  howManyCloseFriends(0)
+	  howManyCloseFriends(0),
+	  velocity(0,0,0)
 	{
 		this->hunger=hunger; // cannot put it on initialization list because I call fish()
 							 // fish() init list would cover my initialization
@@ -94,8 +95,8 @@ public:
 		//ARTSEA_LOG<<"how many visible "<<howManyVisible;
 		force=(flockDirectionFactor*visibleFlockDirection-
 		resolutionFactor*myNearestFriendsDirection+flockCenterFactor*visibleFlockCenter); 
-		//Ogre::Vector3 friction=k*(force/m)*deltaT; 
-		//force-=friction; 
+		Ogre::Vector3 friction=k*velocity; 
+		force-=friction; 
 		
 		//fish orientation test - ogre module
 		/**if(force.x>=100)
@@ -117,7 +118,8 @@ public:
 	}
 	void updatePosition(Ogre::Real deltaT)
 	{
-		this->position+=(0.5*(force/m)*deltaT*deltaT); // physics m=1kg => |F|=|a|
+		this->position += velocity*deltaT;
+		this->velocity += (force/m)*deltaT;
 	}
 	void updateVisibleFlockCenter(Ogre::Vector3 meFriendDistance) //vector between this fish and the other visible fish
 	{
@@ -160,6 +162,7 @@ private:
 	}
 private:
 	Ogre::Vector3 position;
+	Ogre::Vector3 velocity;	//velocity of fish
 	Ogre::Vector3 visibleFlockDirection;
 	Ogre::Vector3 myNearestFriendsDirection;
 	Ogre::Vector3 visibleFlockCenter;
