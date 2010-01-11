@@ -33,6 +33,7 @@ void Flock::createAllFish()
 //based on these vectors calculates force where each fish should go and the next position
 void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, float center,float friction)
 {
+	//ARTSEA_LOG<<"wspolczynniki "<<direction<<" "<<resolution<<" "<<center;
 	//ARTSEA_LOG<<"flock size"<<getFlockSize();
 	//flock sizes ok
 	this->flockDirectionFactor=direction;
@@ -50,6 +51,7 @@ void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, f
 		for(int j=i+1; j<getFlockSize(); ++j)
 		{
 			//add to each fish friend direction vector, and vector between the fish and it's friend
+			//ARTSEA_LOG<<"visibility"<<getFlockVisibility();
 			if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
 			{
 				++seenNumber;
@@ -94,11 +96,11 @@ void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes,
 	 double resolutionFactor=1;  //0.2;
 	 double centerFactor=0.5;          //1.3;
 	 double visibility=10;*/
-	float visibility=10;
+	//float visibility=40;
 
 	for(int i=0; i<howMany; ++i)
 	{
-		Flock * newFlock = new Flock(sizes[i],visibility,directions[i],resolutions[i],centers[i],frictions[i]); 
+		Flock * newFlock = new Flock(sizes[i],directions[i],resolutions[i],centers[i],frictions[i]); 
 
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();
