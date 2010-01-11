@@ -66,6 +66,7 @@ artSeaApp::artSeaApp(void)
 
 	tweakBarSupervisor = NULL;
 	simulationTweakWindow = NULL;
+	flocksTweakWindow = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -282,6 +283,7 @@ void artSeaApp::createScene(void)
 	tweakBarSupervisor = new ergoTw::TweakBarSupervisor(mWindow, mSceneMgr);
 
 
+
 	//==== REAL TWEAKERS
 	simulationTweakWindow = tweakBarSupervisor->createTweakBar("Simulation", "Simulation", Ogre::ColourValue::Blue, "Tweak window for core simulation parameters.");
 	simulationTweakWindow->addRealVariable("step duration", fixedStepRate, true)
@@ -306,21 +308,21 @@ void artSeaApp::createScene(void)
 	for(int i=0; i<howManyFlocks; ++i)
 	{
 		String groupName="Flock "+lexical_cast<String>(i);
-		flocksTweakWindow->addRealVariable("resolution factor"+groupName,resolutionFactors[i],true)
+		flocksTweakWindow->addRealVariable("resolution factor"+groupName,resolutionFactors[i])
 			->precision(2)
 			->group(groupName)
 			->helpString("Resolution factor - how strong resolution effects flock's movement");
 		flocksTweakWindow->addRealVariable("flock's direction factor"+groupName, 
-			flockDirectionFactors[i],true)
+			flockDirectionFactors[i])
 			->precision(2)
 			->group(groupName)
 			->helpString("Flock's direction factor - how strong direction effects flock's movement");
 		flocksTweakWindow->addRealVariable("flock's center factor"+groupName, 
-			flockCenterFactors[i],true)
+			flockCenterFactors[i])
 			->precision(2)
 			->group(groupName)
 			->helpString("Flock's center factor - how strong flock's center effects flock's movement");
-		flocksTweakWindow->addRealVariable("friction"+groupName, frictions[i],true)
+		flocksTweakWindow->addRealVariable("friction"+groupName, frictions[i])
 			->precision(2)
 			->group(groupName)
 			->helpString("Friction factor");
