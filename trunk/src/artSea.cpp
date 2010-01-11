@@ -202,7 +202,7 @@ void artSeaApp::createScene(void)
 		resolutionFactors.push_back(1); //0.2
 		flockDirectionFactors.push_back(1);
 		flockCenterFactors.push_back(1); //1.3
-		frictions.push_back(2000);
+		frictions.push_back(0.3);
 	}
 	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes,
 		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
