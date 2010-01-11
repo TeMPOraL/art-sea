@@ -56,7 +56,7 @@ static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
 static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
 static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 1000.0;
 static const int FIRST_FLOCK_SIZE=300;
-static const int SECOND_FLOCK_SIZE=200;
+static const int SECOND_FLOCK_SIZE=60;
 
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)
@@ -248,7 +248,7 @@ void artSeaApp::createScene(void)
 
 	// setup GUI system
 	mGUIRenderer = new CEGUI::OgreCEGUIRenderer(mWindow,
-	 Ogre::RENDER_QUEUE_OVERLAY, true, 3000, mSceneMgr);	//hack
+	 Ogre::RENDER_QUEUE_OVERLAY, true, 3000, mSceneMgr);
 
 	mGUISystem = new CEGUI::System(mGUIRenderer);
 
@@ -297,6 +297,7 @@ void artSeaApp::createScene(void)
 
 	//==== REAL TWEAKERS
 	simulationTweakWindow = tweakBarSupervisor->createTweakBar("Simulation", "Simulation", Ogre::ColourValue::Blue, "Tweak window for core simulation parameters.");
+	simulationTweakWindow->getTwOgreWindow()->iconify();
 	simulationTweakWindow->addRealVariable("step duration", fixedStepRate, true)
 		->precision(4)
 		->group("Fixed step simulation")
@@ -328,6 +329,7 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 	//==== FLOCKS TWEAKERS
 	flocksTweakWindow=tweakBarSupervisor->createTweakBar("Flocks","Flocks",Ogre::ColourValue::Green, "Tweak window for flocks parameters");
 	flocksTweakWindow->getTwOgreWindow()->setPosition(300,300);
+	flocksTweakWindow->getTwOgreWindow()->iconify();
 	for(int i=0; i<howManyFlocks; ++i)
 	{
 		String groupName="Flock "+lexical_cast<String>(i);
@@ -357,6 +359,7 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 	//==== PURE STATISTICS :)
 	statsTweakWindow = tweakBarSupervisor->createTweakBar("Stats", "Statistics", Ogre::ColourValue::Black, "Tweak window with read-only realtime statistics.");
 	statsTweakWindow->getTwOgreWindow()->setPosition(500, 300);
+	statsTweakWindow->getTwOgreWindow()->iconify();
 	statsTweakWindow->addRealVariable("Current FPS", statistics.lastFPS, true)
 		->precision(2)
 		->group("Rendering");

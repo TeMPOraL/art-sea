@@ -48,7 +48,7 @@ BaseApplication::BaseApplication(void)
 	mGUIRenderer(0),
 	mShutdownRequested(false),
 	mSceneDetailIndex(0),
-	mMoveSpeed(100),
+	mMoveSpeed(300),
 	mRotateSpeed(36),
 	mDebugOverlay(0),
 	mDebugText(""),
@@ -143,7 +143,7 @@ void BaseApplication::createFrameListener(void)
 	mUseBufferedInputMouse = true;
 	mInputTypeSwitchingOn = mUseBufferedInputKeys || mUseBufferedInputMouse;
 	mRotateSpeed = 36;
-	mMoveSpeed = 100;
+	mMoveSpeed = 300;
 
 	using namespace OIS;
 
