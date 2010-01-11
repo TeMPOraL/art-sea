@@ -98,6 +98,8 @@ protected:
 	virtual bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 	virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 
+	virtual void updateStats();
+
 
 
 protected:
@@ -131,10 +133,24 @@ protected:
 	ergoTw::TweakBarSupervisor* tweakBarSupervisor;
 	ergoTw::TweakBar* simulationTweakWindow;
 	ergoTw::TweakBar* flocksTweakWindow;
+	ergoTw::TweakBar* statsTweakWindow;
 
 	//Display
 	Real nearClippingDistance;
 	Real farClippingDistance;
+
+	//Statistics
+	struct
+	{
+		Ogre::Real lastFPS;
+		Ogre::Real avgFPS;
+		Ogre::Real bestFPS;
+		Ogre::Real worstFPS;
+		int bestFrameTime;
+		int worstFrameTime;
+		int triangleCount;
+		int batchCount;
+	} statistics;
 
 	//Flock parameters
 	std::vector<float> resolutionFactors;

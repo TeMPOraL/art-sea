@@ -71,6 +71,7 @@ artSeaApp::artSeaApp(void)
 	tweakBarSupervisor = NULL;
 	simulationTweakWindow = NULL;
 	flocksTweakWindow = NULL;
+	statsTweakWindow = NULL;
 	nearClippingDistance = DEFAULT_NEAR_CLIPPING_DISTANCE;
 	farClippingDistance = DEFAULT_FAR_CLIPPING_DISTANCE;
 }
@@ -352,6 +353,32 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 			->helpString("Friction factor for flock members.");
 	}
 	//mSceneMgr->setSkyBox(true, "Examples/SpaceSkyBox"); 
+
+	//==== PURE STATISTICS :)
+	statsTweakWindow = tweakBarSupervisor->createTweakBar("Stats", "Statistics", Ogre::ColourValue::Black, "Tweak window with read-only realtime statistics.");
+	statsTweakWindow->getTwOgreWindow()->setPosition(500, 300);
+	statsTweakWindow->addRealVariable("Current FPS", statistics.lastFPS, true)
+		->precision(2)
+		->group("Rendering");
+	statsTweakWindow->addRealVariable("Average FPS", statistics.avgFPS, true)
+		->precision(2)
+		->group("Rendering");
+	statsTweakWindow->addRealVariable("Best FPS", statistics.bestFPS, true)
+		->precision(2)
+		->group("Rendering");
+	statsTweakWindow->addRealVariable("Worst FPS", statistics.worstFPS, true)
+		->precision(2)
+		->group("Rendering");
+
+	statsTweakWindow->addIntegerVariable("Best frame time", statistics.bestFrameTime, true)
+		->group("Rendering");
+	statsTweakWindow->addIntegerVariable("Worst frame time", statistics.worstFrameTime, true)
+		->group("Rendering");
+	statsTweakWindow->addIntegerVariable("Triangle count", statistics.triangleCount, true)
+		->group("Rendering");
+	statsTweakWindow->addIntegerVariable("Batch count", statistics.batchCount, true)
+		->group("Rendering");
+
 }
 
 void artSeaApp::chooseSceneManager(void)
@@ -422,6 +449,19 @@ bool artSeaApp::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id
 	return BaseApplication::mouseReleased(arg, id);
 }
 
+void artSeaApp::updateStats()
+{
+	const RenderTarget::FrameStats& stats = mWindow->getStatistics();
+
+	statistics.lastFPS = stats.lastFPS;
+	statistics.avgFPS = stats.avgFPS;
+	statistics.bestFPS = stats.bestFPS;
+	statistics.worstFPS = stats.worstFPS;
+	statistics.batchCount = static_cast<int>(stats.batchCount);
+	statistics.bestFrameTime = static_cast<int>(stats.bestFrameTime);
+	statistics.worstFrameTime = static_cast<int>(stats.worstFrameTime);
+	statistics.triangleCount = static_cast<int>(stats.triangleCount);
+}
 
 //================================================================
 // Main

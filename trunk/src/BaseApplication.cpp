@@ -18,6 +18,7 @@ LGPL like the rest of the OGRE engine.
 -----------------------------------------------------------------------------
 */
 #include "BaseApplication.h"
+#include "Debug.h"
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
 #include "../res/resource.h"
@@ -281,12 +282,15 @@ bool BaseApplication::setup(void)
 //-------------------------------------------------------------------------------------
 void BaseApplication::updateStats(void)
 {
+	ARTSEA_GUARD(BaseApplication::updateStats);
 	//NOTE FIXME stays only for reference. For now.
 	static String currFps = "Current FPS: ";
 	static String avgFps = "Average FPS: ";
 	static String bestFps = "Best FPS: ";
 	static String worstFps = "Worst FPS: ";
 	static String tris = "Triangle Count: ";
+
+	ARTSEA_ASSERT(0, "BaseApplication::updateStats() - This function should not be called.");
 
 	// update stats when necessary
 	try {
@@ -299,6 +303,7 @@ void BaseApplication::updateStats(void)
 	{
 		// ignore
 	}
+	ARTSEA_UNGUARD;
 }
 //-------------------------------------------------------------------------------------
 bool BaseApplication::processUnbufferedKeyInput(const FrameEvent& evt)
