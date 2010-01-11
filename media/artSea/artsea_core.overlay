@@ -1,0 +1,31 @@
+// artSea overlay scripts
+artSea/DebugOverlay
+{
+	zorder 500
+	container Panel(artSea/LogoPanel)
+	{	
+		metrics_mode pixels
+		horz_align right
+		vert_align bottom
+		top -85
+		left -85
+		width 75
+		height 75
+		material artSea/ProjectLogo
+	}
+}
+
+// A silly example of how you would do a 3D cockpit
+//Examples/KnotCockpit
+//{
+//	zorder 100
+//	entity knot.mesh(hudKnot)
+//	{
+//		position 0 0 -50
+//		rotation 0 0 0 0
+//	}
+//
+//}
+
+
+
