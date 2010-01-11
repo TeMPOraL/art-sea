@@ -132,6 +132,10 @@ protected:
 	ergoTw::TweakBar* simulationTweakWindow;
 	ergoTw::TweakBar* flocksTweakWindow;
 
+	//Display
+	Real nearClippingDistance;
+	Real farClippingDistance;
+
 	//Flock parameters
 	std::vector<float> resolutionFactors;
 	std::vector<float> flockCenterFactors;
