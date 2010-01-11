@@ -74,7 +74,7 @@ void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, f
 			//ARTSEA_LOG<<"seen friends  "<<seenNumber<<" "<<getFlockVisibility();
 		}
 		//fishInTheFlock[i]->calculateForce(1.5,0.2,1.8);
-		fishInTheFlock[i]->calculateForce(flockDirectionFactor,resolutionFactor,flockCenterFactor,deltaT);
+		fishInTheFlock[i]->calculateForce(flockDirectionFactor,resolutionFactor,flockCenterFactor,friction,deltaT);
 		fishInTheFlock[i]->updatePosition(deltaT);
 	}
 	

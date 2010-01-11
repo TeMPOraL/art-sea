@@ -12,7 +12,7 @@ static const int DEFAULT_FLOCK_SIZE=50;
 static const int RANDOM_VECTOR_LENGTH=2000;
 
 static int counter=0;
-static const float k=0.3;
+//static const float k=0.3;
 //====================================================
 // Fish
 //====================================================
@@ -88,14 +88,14 @@ public:
 	//myNearestFriendsDirection - vector between the fish and it's friends
 	//resolution - fish doesn't want to be too close to it's friend's; goes oposite direction
 	//all fish try to go the same direction = visibleFlockDirection
-	void calculateForce(float flockDirectionFactor,float resolutionFactor,float flockCenterFactor, Ogre::Real deltaT)
+	void calculateForce(float flockDirectionFactor,float resolutionFactor,float flockCenterFactor,float frictionFactor, Ogre::Real deltaT)
 	{
 		//ARTSEA_LOG<<"f "<<flockDirectionFactor<<" "<<resolutionFactor<<" "<<flockCenterFactor;
 		//ARTSEA_LOG<<"wspaniale "<<visibleFlockDirection<<" "<<myNearestFriendsDirection<<" "<< visibleFlockCenter;
 		//ARTSEA_LOG<<"how many visible "<<howManyVisible;
 		force=(flockDirectionFactor*visibleFlockDirection-
 		resolutionFactor*myNearestFriendsDirection+flockCenterFactor*visibleFlockCenter); 
-		Ogre::Vector3 friction=k*velocity; 
+		Ogre::Vector3 friction=frictionFactor*velocity; 
 		force-=friction; 
 		
 		//fish orientation test - ogre module
