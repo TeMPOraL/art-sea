@@ -97,6 +97,30 @@ public:
 		resolutionFactor*myNearestFriendsDirection+flockCenterFactor*visibleFlockCenter); 
 		Ogre::Vector3 friction=frictionFactor*velocity; 
 		force-=friction; 
+		//Ogre::Real max=force.x;
+		//normalization
+		/**if(force.y> max)
+		{
+			max=force.y;
+		}
+		if(force.z>max)
+		{
+			max=force.z;
+		}
+		force.x/=max;
+		force.y/=max;
+		force.z/=max;*/
+
+		if(force.length()> 0.0001f)
+		{
+			force/=force.length();
+		}
+		force*=5;
+		
+
+
+		//force*=10;
+
 		
 		//fish orientation test - ogre module
 		/**if(force.x>=100)
