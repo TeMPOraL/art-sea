@@ -82,6 +82,17 @@ protected:
 	void setupEventHandlers(void);
 	bool handleQuit(const CEGUI::EventArgs& e);
 
+	void SyncCEGUIWithOIS()
+	{
+		if(mUseBufferedInputMouse)
+		{
+			// Align CEGUI mouse with OIS mouse
+			OIS::MouseState state = mMouse->getMouseState();
+			CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();  
+			CEGUI::System::getSingleton().injectMouseMove(state.X.abs-mousePos.d_x,state.Y.abs-mousePos.d_y);
+		}
+	}
+
 	Root *mRoot;
 	Camera* mCamera;
 	SceneManager* mSceneMgr;

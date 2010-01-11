@@ -247,7 +247,7 @@ void artSeaApp::createScene(void)
 
 	// setup GUI system
 	mGUIRenderer = new CEGUI::OgreCEGUIRenderer(mWindow,
-	 Ogre::RENDER_QUEUE_OVERLAY, false, 3000, mSceneMgr);
+	 Ogre::RENDER_QUEUE_OVERLAY, true, 3000, mSceneMgr);	//hack
 
 	mGUISystem = new CEGUI::System(mGUIRenderer);
 

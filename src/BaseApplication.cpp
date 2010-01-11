@@ -274,6 +274,8 @@ bool BaseApplication::setup(void)
 
 	createFrameListener();
 
+	SyncCEGUIWithOIS();
+
 	return true;
 };
 //-------------------------------------------------------------------------------------
@@ -599,14 +601,7 @@ void BaseApplication::switchMouseMode()
 {
 	mUseBufferedInputMouse = !mUseBufferedInputMouse;
 	mMouse->setBuffered(mUseBufferedInputMouse);
-
-	if(mUseBufferedInputMouse)
-	{
-		// Align CEGUI mouse with OIS mouse
-		OIS::MouseState state = mMouse->getMouseState();
-		CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();  
-		CEGUI::System::getSingleton().injectMouseMove(state.X.abs-mousePos.d_x,state.Y.abs-mousePos.d_y);
-	}
+	SyncCEGUIWithOIS();
 }
 //-------------------------------------------------------------------------------------
 void BaseApplication::switchKeyMode()
