@@ -51,6 +51,10 @@ static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
 static const Real DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME = 30.0;	//default max for simulations per frame
 static const Real MINIMUM_SIMULATION_STEPS_PER_SECOND = 0.00001;
+static const Real DEFAULT_TIMESCALE = 1.0;
+static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
+static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
+static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 1000.0;
 static const int FIRST_FLOCK_SIZE=6;
 static const int SECOND_FLOCK_SIZE=12;
 
@@ -61,12 +65,14 @@ artSeaApp::artSeaApp(void)
 	fixedStepRate = DEFAULT_FIXED_STEP_SIMULATION_RATE;
 	fixedStepDTMax = DEFAULT_FIXED_STEP_SIMULATION_DT_MAX;
 	fixedStepMaxUpdatesPerFrame = DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME;
-	timescale = 1.0;
-	fixedStepsPerSecond = 30.0f;
+	timescale = DEFAULT_TIMESCALE;
+	fixedStepsPerSecond = DEFAULT_FIXED_STEPS_PER_SECOND;
 
 	tweakBarSupervisor = NULL;
 	simulationTweakWindow = NULL;
 	flocksTweakWindow = NULL;
+	nearClippingDistance = DEFAULT_NEAR_CLIPPING_DISTANCE;
+	farClippingDistance = DEFAULT_FAR_CLIPPING_DISTANCE;
 }
 
 //-------------------------------------------------------------------------------------
@@ -95,6 +101,10 @@ bool artSeaApp::frameStarted(const FrameEvent& evt)
 
 
 	tweakBarSupervisor->update();
+
+	//update variables
+	mCamera->setNearClipDistance(nearClippingDistance);
+	mCamera->setFarClipDistance(farClippingDistance);
 
 	return (result && true);
 }
@@ -300,6 +310,18 @@ void artSeaApp::createScene(void)
 		->precision(2)
 		->group("Fixed step simulation")
 		->helpString("Each simulation frame has its deltaTime multiplied by this value. It does not, however, change the simulation rate.");
+	simulationTweakWindow->addRealVariable("near clipping distance", nearClippingDistance)
+		->range(0.01, std::numeric_limits<Ogre::Real>::infinity(), 0.01)
+		->precision(2)
+		->group("Rendering")
+		->helpString("Controls the distance of near clipping plane from camera. Too high values cause object close to camera to disappear. \
+Too small values could mess rendering up completely.");
+	simulationTweakWindow->addRealVariable("far clipping distance", farClippingDistance)
+		->range(0.01, std::numeric_limits<Ogre::Real>::infinity(), 0.1)
+		->precision(2)
+		->group("Rendering")
+		->helpString("Controls the distance of far clipping plane from camera. Too high values could mess rendering up completely. \
+Avoid getting far distance < near distance - may cause III World War, or worse.");
 
 
 	//==== FLOCKS TWEAKERS
@@ -308,24 +330,26 @@ void artSeaApp::createScene(void)
 	for(int i=0; i<howManyFlocks; ++i)
 	{
 		String groupName="Flock "+lexical_cast<String>(i);
-		flocksTweakWindow->addRealVariable("resolution factor"+groupName,resolutionFactors[i])
+		flocksTweakWindow->addRealVariable("resolution factor" + groupName,resolutionFactors[i])
 			->precision(2)
+			->label("resolution factor")
 			->group(groupName)
 			->helpString("Resolution factor - how strong resolution effects flock's movement");
-		flocksTweakWindow->addRealVariable("flock's direction factor"+groupName, 
-			flockDirectionFactors[i])
+		flocksTweakWindow->addRealVariable("direction factor" + groupName, flockDirectionFactors[i])
 			->precision(2)
+			->label("direction factor")
 			->group(groupName)
 			->helpString("Flock's direction factor - how strong direction effects flock's movement");
-		flocksTweakWindow->addRealVariable("flock's center factor"+groupName, 
-			flockCenterFactors[i])
+		flocksTweakWindow->addRealVariable("center factor" + groupName, flockCenterFactors[i])
 			->precision(2)
+			->label("center factor")
 			->group(groupName)
 			->helpString("Flock's center factor - how strong flock's center effects flock's movement");
-		flocksTweakWindow->addRealVariable("friction"+groupName, frictions[i])
+		flocksTweakWindow->addRealVariable("friction" + groupName, frictions[i])
 			->precision(2)
+			->label("friction factor")
 			->group(groupName)
-			->helpString("Friction factor");
+			->helpString("Friction factor for flock members.");
 	}
 	//mSceneMgr->setSkyBox(true, "Examples/SpaceSkyBox"); 
 }
