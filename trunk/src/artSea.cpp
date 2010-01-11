@@ -55,8 +55,8 @@ static const Real DEFAULT_TIMESCALE = 1.0;
 static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
 static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
 static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 1000.0;
-static const int FIRST_FLOCK_SIZE=60;
-static const int SECOND_FLOCK_SIZE=120;
+static const int FIRST_FLOCK_SIZE=300;
+static const int SECOND_FLOCK_SIZE=200;
 
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)
