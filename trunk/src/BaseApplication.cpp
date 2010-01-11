@@ -138,7 +138,7 @@ void BaseApplication::createCamera(void)
 void BaseApplication::createFrameListener(void)
 {
 	mDebugOverlay = OverlayManager::getSingleton().getByName("artSea/DebugOverlay");
-	mUseBufferedInputKeys = false;
+	mUseBufferedInputKeys = true;
 	mUseBufferedInputMouse = true;
 	mInputTypeSwitchingOn = mUseBufferedInputKeys || mUseBufferedInputMouse;
 	mRotateSpeed = 36;
