@@ -3,7 +3,7 @@
 #include<time.h>
 static const int SCREEN_X=300;
 static const int SCREEN_Y=150;
-static const int SCREEN_Z=5;
+static const int SCREEN_Z=10;
 
 //====================================================
 // Flock

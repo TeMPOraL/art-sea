@@ -54,7 +54,7 @@ static const Real MINIMUM_SIMULATION_STEPS_PER_SECOND = 0.00001;
 static const Real DEFAULT_TIMESCALE = 1.0;
 static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
 static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
-static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 1000.0;
+static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 10000.0;
 static const int FIRST_FLOCK_SIZE=300;
 static const int SECOND_FLOCK_SIZE=60;
 
@@ -169,7 +169,7 @@ void artSeaApp::updateWorld(Real deltaT)
 		else
 		{
 			Ogre::Quaternion quat=orientation.getRotationTo(direction);
-			fishNodes[i]->rotate(quat);
+			//fishNodes[i]->rotate(quat);
 		}
 		fishNodes[i]->setPosition(newPositions[i]);		
 		
@@ -353,8 +353,7 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 			->label("friction factor")
 			->group(groupName)
 			->helpString("Friction factor for flock members.");
-	}
-	//mSceneMgr->setSkyBox(true, "Examples/SpaceSkyBox"); 
+	} 
 
 	//==== PURE STATISTICS :)
 	statsTweakWindow = tweakBarSupervisor->createTweakBar("Stats", "Statistics", Ogre::ColourValue::Black, "Tweak window with read-only realtime statistics.");
@@ -381,6 +380,8 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 		->group("Rendering");
 	statsTweakWindow->addIntegerVariable("Batch count", statistics.batchCount, true)
 		->group("Rendering");
+
+	mSceneMgr->setSkyBox(true, "artSea/SkyBox");
 
 }
 
