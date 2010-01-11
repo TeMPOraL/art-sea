@@ -137,7 +137,7 @@ void BaseApplication::createCamera(void)
 //-------------------------------------------------------------------------------------
 void BaseApplication::createFrameListener(void)
 {
-	mDebugOverlay = OverlayManager::getSingleton().getByName("Core/DebugOverlay");
+	mDebugOverlay = OverlayManager::getSingleton().getByName("artSea/DebugOverlay");
 	mUseBufferedInputKeys = false;
 	mUseBufferedInputMouse = true;
 	mInputTypeSwitchingOn = mUseBufferedInputKeys || mUseBufferedInputMouse;
@@ -279,6 +279,7 @@ bool BaseApplication::setup(void)
 //-------------------------------------------------------------------------------------
 void BaseApplication::updateStats(void)
 {
+	//NOTE FIXME stays only for reference. For now.
 	static String currFps = "Current FPS: ";
 	static String avgFps = "Average FPS: ";
 	static String bestFps = "Best FPS: ";
@@ -287,25 +288,10 @@ void BaseApplication::updateStats(void)
 
 	// update stats when necessary
 	try {
-		OverlayElement* guiAvg = OverlayManager::getSingleton().getOverlayElement("Core/AverageFps");
-		OverlayElement* guiCurr = OverlayManager::getSingleton().getOverlayElement("Core/CurrFps");
-		OverlayElement* guiBest = OverlayManager::getSingleton().getOverlayElement("Core/BestFps");
-		OverlayElement* guiWorst = OverlayManager::getSingleton().getOverlayElement("Core/WorstFps");
-
 		const RenderTarget::FrameStats& stats = mWindow->getStatistics();
 
-		guiAvg->setCaption(avgFps + StringConverter::toString(stats.avgFPS));
-		guiCurr->setCaption(currFps + StringConverter::toString(stats.lastFPS));
-		guiBest->setCaption(bestFps + StringConverter::toString(stats.bestFPS)
-			+" "+StringConverter::toString(stats.bestFrameTime)+" ms");
-		guiWorst->setCaption(worstFps + StringConverter::toString(stats.worstFPS)
-			+" "+StringConverter::toString(stats.worstFrameTime)+" ms");
-
-		OverlayElement* guiTris = OverlayManager::getSingleton().getOverlayElement("Core/NumTris");
-		guiTris->setCaption(tris + StringConverter::toString(stats.triangleCount));
-
-		OverlayElement* guiDbg = OverlayManager::getSingleton().getOverlayElement("Core/DebugText");
-		guiDbg->setCaption(mDebugText);
+		//update ant tweak bar ;)
+		//FIXME -> virtual...
 	}
 	catch(...)
 	{
