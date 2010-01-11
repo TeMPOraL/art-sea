@@ -6,7 +6,7 @@
 #define _artSea_Simulation_
    
 static const Ogre::Real INFINITE_DISTANCE = 500000;
-static const int DEFAULT_VISIBILITY=40;
+static const int DEFAULT_VISIBILITY=70;
 static const int CLOSE_FRIENDS_DISTANCE=5;
 static const int DEFAULT_FLOCK_SIZE=50;
 static const int RANDOM_VECTOR_LENGTH=2000;
@@ -40,7 +40,7 @@ public:
 							 // fish() init list would cover my initialization
 		this->position=position;
 		this->force= Ogre::Vector3(Fish::getRandomVector());
-		ARTSEA_LOG<<"dora"<<force;
+		//ARTSEA_LOG<<"dora"<<force;
 		tmp=false;
 	}
 	//void upateFriend(Fish fish);
@@ -69,11 +69,11 @@ public:
 	//flock direction from this fish's point of view; based on it's visibility
 	void updateFlockDirection(Ogre::Vector3 visibleFriendDirection)
 	{
-		if(howManyCloseFriends>1)
+		if(howManyVisible>1)
 		{
-			visibleFlockDirection*=(howManyCloseFriends-1);
+			visibleFlockDirection*=(howManyVisible-1);
 			this->visibleFlockDirection+=visibleFriendDirection;
-			visibleFlockDirection/=howManyCloseFriends;
+			visibleFlockDirection/=howManyVisible;
 		}
 		else
 		{
@@ -89,13 +89,16 @@ public:
 	//all fish try to go the same direction = visibleFlockDirection
 	void calculateForce(float flockDirectionFactor,float resolutionFactor,float flockCenterFactor, Ogre::Real deltaT)
 	{
-		/**force=(flockDirectionFactor*visibleFlockDirection-
+		//ARTSEA_LOG<<"f "<<flockDirectionFactor<<" "<<resolutionFactor<<" "<<flockCenterFactor;
+		//ARTSEA_LOG<<"wspaniale "<<visibleFlockDirection<<" "<<myNearestFriendsDirection<<" "<< visibleFlockCenter;
+		//ARTSEA_LOG<<"how many visible "<<howManyVisible;
+		force=(flockDirectionFactor*visibleFlockDirection-
 		resolutionFactor*myNearestFriendsDirection+flockCenterFactor*visibleFlockCenter); 
-		Ogre::Vector3 friction=k*(force/m)*deltaT; 
-		force-=friction; */
+		//Ogre::Vector3 friction=k*(force/m)*deltaT; 
+		//force-=friction; 
 		
 		//fish orientation test - ogre module
-		if(force.x>=100)
+		/**if(force.x>=100)
 		{
 			tmp=true;
 		}
@@ -106,7 +109,7 @@ public:
 		else
 		{
 			force+=Ogre::Vector3(20,0,0);
-		}
+		}*/
 	}
 	Ogre::Vector3 getForce()
 	{
@@ -180,9 +183,9 @@ public:
 		flockSize=1;
 	};
 	//positions of fish in the flock setting randomly
-	Flock(int howMany,int visibility,float directionFactor,float resolutionFactor,float centerFactor,float frictionFactor):
+	Flock(int howMany,float directionFactor,float resolutionFactor,float centerFactor,float frictionFactor,int vis=DEFAULT_VISIBILITY):
 		flockSize(howMany),
-		visibility(visibility),
+		visibility(vis),
 		flockDirectionFactor(directionFactor),
 		resolutionFactor(resolutionFactor),
 		flockCenterFactor(centerFactor),	
