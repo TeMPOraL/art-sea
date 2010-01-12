@@ -84,10 +84,7 @@ artSeaApp::~artSeaApp(void)
 //		delete hydraxModule;
 //	}
 
-	if(tweakBarSupervisor)
-	{
-		delete tweakBarSupervisor;
-	}
+	delete tweakBarSupervisor;
 }
 
 //================================================================
