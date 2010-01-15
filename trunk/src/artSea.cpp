@@ -155,8 +155,10 @@ void artSeaApp::updateWorld(Real deltaT)
 	
 	ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
 	std::vector<Ogre::Vector3> & newPositions = ourWorld->getAllFishPositions(); // next position
+	//set new position and orientation after updates
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
 	{
+		//set new orientation
 		Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3::UNIT_X; // why unit_x?
 		Ogre::Vector3 direction=fishNodes[i]->getPosition()- newPositions[i];
 		if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
@@ -168,6 +170,7 @@ void artSeaApp::updateWorld(Real deltaT)
 			Ogre::Quaternion quat=orientation.getRotationTo(direction);
 			//fishNodes[i]->rotate(quat);
 		}
+		//set new position
 		fishNodes[i]->setPosition(newPositions[i]);		
 		
 	}
@@ -184,8 +187,8 @@ void artSeaApp::updateWorld(Real deltaT)
 void artSeaApp::createScene(void)
 {
 	//////////////////////////////////////////////////////////////
-	//simulation test
-	//setting simulations parameters: howManyFlocks, flockSizes, model files
+	//simulation 
+	//setting simulation's stuff: howManyFlocks, flockSizes, model files
 	srand(time(NULL));
 	int howManyFlocks=2; // howManyFlocks setting
 	std::vector<int>flockSizes;
@@ -240,7 +243,7 @@ void artSeaApp::createScene(void)
 	{
 
 	}*/
-	//the end of simulation test
+	//the end of simulation part
 	////////////////////////////////////////////////////////////////////////////
 
 	// setup GUI system
