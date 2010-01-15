@@ -10,6 +10,10 @@ static const int DEFAULT_VISIBILITY=70;
 static const int CLOSE_FRIENDS_DISTANCE=5;
 static const int DEFAULT_FLOCK_SIZE=50;
 static const int RANDOM_VECTOR_LENGTH=2000;
+static const float DEFAULT_RESOLUTION_FACTOR=1;
+static const float DEFAULT_DIRECTION_FACTOR=1;
+static const float DEFAULT_CENTER_FACTOR=0.3;
+static const float DEFAULT_FRICTION_FACTOR=20;
 
 static int counter=0;
 //static const float k=0.3;
@@ -19,54 +23,52 @@ static int counter=0;
 class Fish
 {
 public:
-/**	Fish(): 
-	  hunger(0),
-	  position(Ogre::Vector3(0,0,0)),
-	  //force(Ogre::Vector3(Fish::getRandomVector())),
-	  myNearestFriendsDirection(Ogre::Vector3::ZERO),
-	  visibleFlockDirection(Ogre::Vector3::ZERO),
-	  howManyVisible(0),
-	  howManyCloseFriends(0) // we have ok force after initialization
-	  {} */
 
 	Fish(Ogre::Vector3 position,int hunger=0):
-	 // force(Ogre::Vector3(Fish::getRandomVector()),
-	  myNearestFriendsDirection(0,0,0),
+	  myNearestFriendsCenter(0,0,0),
 	  visibleFlockDirection(0,0,0),
 	  howManyVisible(0),
 	  howManyCloseFriends(0),
-	  velocity(0,0,0)
-	{
-		this->hunger=hunger; // cannot put it on initialization list because I call fish()
-							 // fish() init list would cover my initialization
-		this->position=position;
-		this->force= Ogre::Vector3(Fish::getRandomVector());
-		//ARTSEA_LOG<<"dora"<<force;
-		tmp=false;
-	}
-	//void upateFriend(Fish fish);
-	//void updateEnemy(Fish fish);
+	  velocity(0,0,0),
+	  myHunger(hunger),
+	  myPosition(position),
+	  myForce(Ogre::Vector3(Fish::getRandomVector()))
+	{}
+
 	Ogre::Vector3 getPosition()
 	{
-		return position;
+		return myPosition;
 	}
-	void updateMyNearestFriendsDirection(Ogre::Vector3 direction)
+
+	Ogre::Vector3 getMyNearestFriendDirection()
+	{
+		return myNearestFriendsCenter;
+	}
+
+	Ogre::Vector3 getForce()
+	{
+		return myForce;
+	}
+
+	Ogre::Vector3 getVibibleFlockDirection()
+	{
+		return visibleFlockDirection;
+	}
+
+	void updatemyNearestFriendsCenter(Ogre::Vector3 direction)
 	{	
 		if(howManyCloseFriends>1)
 		{
-			myNearestFriendsDirection*=(howManyCloseFriends-1);
-			this->myNearestFriendsDirection+=direction;
-			myNearestFriendsDirection/=howManyCloseFriends;
+			myNearestFriendsCenter*=(howManyCloseFriends-1);
+			this->myNearestFriendsCenter+=direction;
+			myNearestFriendsCenter/=howManyCloseFriends;
 		}
 		else
 		{
-			this->myNearestFriendsDirection+=direction;
+			this->myNearestFriendsCenter+=direction;
 		}
 	}
-	Ogre::Vector3 getMyNearestFriendDirection()
-	{
-		return myNearestFriendsDirection;
-	}
+
 	//flock direction from this fish's point of view; based on it's visibility
 	void updateFlockDirection(Ogre::Vector3 visibleFriendDirection)
 	{
@@ -81,71 +83,10 @@ public:
 			this->visibleFlockDirection+=visibleFriendDirection;
 		}
 	}
-	Ogre::Vector3 getVibibleFlockDirection()
-	{
-		return visibleFlockDirection;
-	}
-	//myNearestFriendsDirection - vector between the fish and it's friends
-	//resolution - fish doesn't want to be too close to it's friend's; goes oposite direction
-	//all fish try to go the same direction = visibleFlockDirection
-	void calculateForce(float flockDirectionFactor,float resolutionFactor,float flockCenterFactor,float frictionFactor, Ogre::Real deltaT)
-	{
-		//ARTSEA_LOG<<"f "<<flockDirectionFactor<<" "<<resolutionFactor<<" "<<flockCenterFactor;
-		//ARTSEA_LOG<<"wspaniale "<<visibleFlockDirection<<" "<<myNearestFriendsDirection<<" "<< visibleFlockCenter;
-		//ARTSEA_LOG<<"how many visible "<<howManyVisible;
-		force=(flockDirectionFactor*visibleFlockDirection-
-		resolutionFactor*myNearestFriendsDirection+flockCenterFactor*visibleFlockCenter); 
-		Ogre::Vector3 friction=frictionFactor*velocity; 
-		force-=friction; 
-		//Ogre::Real max=force.x;
-		//normalization
-		/**if(force.y> max)
-		{
-			max=force.y;
-		}
-		if(force.z>max)
-		{
-			max=force.z;
-		}
-		force.x/=max;
-		force.y/=max;
-		force.z/=max;*/
 
-		if(force.length()> 0.0001f)
-		{
-			force/=force.length();
-		}
-		force*=5;
-		
-
-
-		//force*=10;
-
-		
-		//fish orientation test - ogre module
-		/**if(force.x>=100)
-		{
-			tmp=true;
-		}
-		if(tmp==true)
-		{
-			force-=Ogre::Vector3(20,0,0);
-		}
-		else
-		{
-			force+=Ogre::Vector3(20,0,0);
-		}*/
-	}
-	Ogre::Vector3 getForce()
-	{
-		return force;
-	}
-	void updatePosition(Ogre::Real deltaT)
-	{
-		this->position += velocity*deltaT;
-		this->velocity += (force/m)*deltaT;
-	}
-	void updateVisibleFlockCenter(Ogre::Vector3 meFriendDistance) //vector between this fish and the other visible fish
+	//visibleFlockCenter - vector between this fish and the other fish (visible from 
+	//'his' point of view
+	void updateVisibleFlockCenter(Ogre::Vector3 meFriendDistance) 
 	{
 		if(howManyVisible>1)
 		{
@@ -156,26 +97,53 @@ public:
 		else
 		{
 			visibleFlockCenter+=meFriendDistance;
-		}
-		
+		}		
 	}
-	void initForces()
+
+	//force is NORMALIZED sum of COMPONENTS: resolution - not stick too close to the nearest friends, 
+	//flock center - all fish try to go to the center, flock direction - all fish try to follow
+	//the direction AND FRICTION FORCE
+	void calculateForce(float flockDirectionFactor,float resolutionFactor,float flockCenterFactor,float frictionFactor, Ogre::Real deltaT)
+	{
+		myForce=(flockDirectionFactor*visibleFlockDirection-
+		resolutionFactor*myNearestFriendsCenter+flockCenterFactor*visibleFlockCenter); 
+		Ogre::Vector3 friction=frictionFactor*velocity; 
+		myForce-=friction; 
+
+		if(myForce.length()> 0.0001f)
+		{
+			myForce/=myForce.length();
+		}
+		myForce*=5;
+	}	
+
+	// update position based on myForce - physics model
+	void updatePosition(Ogre::Real deltaT)
+	{
+		this->myPosition += velocity*deltaT;
+		this->velocity += (myForce/m)*deltaT;
+	}
+
+	void initFishDataBeforeUpdating()
 	{
 		visibleFlockCenter=Ogre::Vector3::ZERO;
 		visibleFlockDirection=Ogre::Vector3::ZERO;
-		myNearestFriendsDirection=Ogre::Vector3::ZERO;
+		myNearestFriendsCenter=Ogre::Vector3::ZERO;
 		howManyCloseFriends=0;
 		howManyVisible=0;
 	}
+
 	void incrementVisibleFish()
 	{
 		++howManyVisible;
 	}
+
 	void incrementCloseFriends()
 	{
 		++howManyCloseFriends;
 	}
-private:
+
+protected:
 	static Ogre::Vector3 getRandomVector()
 	{
 		int x=rand()%(2*RANDOM_VECTOR_LENGTH)-RANDOM_VECTOR_LENGTH;
@@ -184,18 +152,19 @@ private:
 		return Ogre::Vector3(x,y,z);
 
 	}
-private:
-	Ogre::Vector3 position;
+
+protected:
+
+	Ogre::Vector3 myPosition; // fish position
 	Ogre::Vector3 velocity;	//velocity of fish
-	Ogre::Vector3 visibleFlockDirection;
-	Ogre::Vector3 myNearestFriendsDirection;
-	Ogre::Vector3 visibleFlockCenter;
-	Ogre::Vector3 force; // computed; based on floclDirection and NearestFriends
-	int howManyVisible;
-	int howManyCloseFriends;
-	int hunger;
+	Ogre::Vector3 visibleFlockDirection; // flock direction visible from thisfish point of view
+	Ogre::Vector3 myNearestFriendsCenter; //show the point where the closest fish are - used in resolution
+	Ogre::Vector3 visibleFlockCenter; //flock center from this fish point of view
+	Ogre::Vector3 myForce; //force whish cause fish movements
+	int howManyVisible; //how many othe fish this fish can see
+	int howManyCloseFriends; // how many close frends he has
+	int myHunger; //how hungry th fish is
 	static const int m=1; // weight right now the same for all fish
-	bool tmp;
 };
 
 //====================================================
@@ -204,15 +173,20 @@ private:
 class Flock
 {
 public:
-	Flock()
+	Flock():
+		visibility(DEFAULT_FLOCK_SIZE), 
+		flockSize(DEFAULT_VISIBILITY),
+		flockDirectionFactor(DEFAULT_DIRECTION_FACTOR),
+		resolutionFactor(DEFAULT_RESOLUTION_FACTOR),
+		flockCenterFactor(DEFAULT_CENTER_FACTOR),
+		friction(DEFAULT_FRICTION_FACTOR)
 	{
-		visibility=5; 
-		flockSize=1;
-	};
-	//positions of fish in the flock setting randomly
-	Flock(int howMany,float directionFactor,float resolutionFactor,float centerFactor,float frictionFactor,int vis=DEFAULT_VISIBILITY):
+	}
+
+	//myPositions of fish in the flock setting randomly
+	Flock(int howMany,float directionFactor,float resolutionFactor,float centerFactor,float frictionFactor,int flockVisibility=DEFAULT_VISIBILITY):
 		flockSize(howMany),
-		visibility(vis),
+		visibility(flockVisibility),
 		flockDirectionFactor(directionFactor),
 		resolutionFactor(resolutionFactor),
 		flockCenterFactor(centerFactor),	
@@ -221,18 +195,22 @@ public:
 	}
 	
 	void createAllFish();
+
 	int getFlockVisibility()
 	{
 		return visibility;
 	}
+
 	int getFlockSize()
 	{
 		return flockSize;
 	}
+
 	Ogre::Real getSquaredDistance(Fish *a, Fish *b)
 	{ 
 		return a->getPosition().squaredDistance(b->getPosition());		
 	}
+	
 	//TODO: check pointer. This returs cons reference to a vector, which has
 	//pointers to fish. We cannot change pointer to this vector, but what about
 	//fish? Check & make sure it's corrent. Everything const! Const references
@@ -241,19 +219,19 @@ public:
 		std::vector<Fish*> & ref = fishInTheFlock;
 		return ref;
 	}
+
 	void updateAllFish(Ogre::Real deltaT,float direction,float resolution,float center,float friction);
 	~Flock(){};
 
 private:
-	void createFish(Ogre::Vector3 position);
+	void createFish(Ogre::Vector3 myPosition);
 	//TODO optimalization problem; the fact that one fish can see another
 	//doesn't mean the second one can see the first one. For right now - ok; later - to change
- // this function is to optimalize algorithms. Can be used only 
+	// this function is to optimalize algorithms. Can be used only 
 										  // for fish from the same folk==fish having the same visibility
-public:	//CHANGE TO PRIVATE!!!1										  //fish which can see everything around
+protected:
 	bool canSeeEachOther(Fish *a, Fish *b)
 	{
-		//Ogre::Vector3 posA=a->getPosition();
 		if(getSquaredDistance(a,b)<getFlockVisibility()*getFlockVisibility())
 		{
 			return true;
@@ -264,9 +242,9 @@ public:	//CHANGE TO PRIVATE!!!1										  //fish which can see everything aroun
 		}
 	}
 
-private:
+protected:
 	std::vector<Fish*> fishInTheFlock;	//fish which belong to this flock
-	//TODO  right know fish can see everywhere around; change it!
+										//TODO  right know fish can see everywhere around; change it!
 	int visibility;				//how far each fish can see; the same for all fish from the flock;
 								//fish can see everywhere arund in the sphere. visibility=radius of this sphere
 	int flockSize;
@@ -286,6 +264,7 @@ public:
 		assert(singleton!=0);
 		singletonFlag=false;
 	}
+
 	static SimulationWorld* getSimulationWorld(int howManyFlocks, std::vector<int>& sizes,
 		std::vector<float>&directions,std::vector<float>&resolutions,std::vector<float>&centers,
 		std::vector<float>&frictions)
@@ -297,27 +276,32 @@ public:
 		}
 		return singleton;
 	}
+
 	void setHowManyFlocks(int howManyFlocks)
 	{
 		this->howManyFlocks=howManyFlocks;
 	}
+
 	int getHowManyFlocks()
 	{
 		return howManyFlocks;
 	}
+
 	void showWorld();
+
 	void createFlocks(int howMany,std::vector<int>&sizes,std::vector<float>&directions,
 		std::vector<float>&resolutions,std::vector<float>&centers,std::vector<float>&frictions);
+	
 	std::vector<Ogre::Vector3> & getAllFishPositions()
 	{
 		return allFishPositions;
 	}
+
 	std::vector<int> & getAllFishFlocks()
 	{
-		std::vector<int>&ref=allFishFlocks;
-		return ref;
-		//return allFishFlocks;
+		return allFishFlocks;
 	}
+
 	void setAllFishPositionsAndFlocks();
 
 	void updateAllFish(Ogre::Real deltaT,std::vector<float>&direction,std::vector<float>&resolution,
@@ -342,9 +326,8 @@ private:
 	static bool singletonFlag;
 	std::vector<Flock*>flocks;
 	int howManyFlocks;
-	std::vector<Ogre::Vector3>allFishPositions; //allFishPositions[i] - positions of fish 'number' i; needed in ogre module
+	std::vector<Ogre::Vector3>allFishPositions; //allFishmyPositions[i] - myPositions of fish 'number' i; needed in ogre module
 	std::vector<int> allFishFlocks; //allFishFlocks[i] - flock id of fish 'number' i; needed in ogre module
-	//int directionFactor,resolutionFactor,centerFactor;
 };
 
 #endif 

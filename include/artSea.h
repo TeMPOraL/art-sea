@@ -193,7 +193,7 @@ public:
 	{
 		return modelFileName;
 	}
-private:
+protected:
 	int flockSize;
 	String modelFileName;
 	int visibility;
