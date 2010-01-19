@@ -55,7 +55,7 @@ static const Real DEFAULT_TIMESCALE = 1.0;
 static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
 static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
 static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 10000.0;
-static const int FIRST_FLOCK_SIZE=300;
+static const int FIRST_FLOCK_SIZE=100;
 static const int SECOND_FLOCK_SIZE=60;
 
 //-------------------------------------------------------------------------------------
@@ -155,21 +155,26 @@ void artSeaApp::updateWorld(Real deltaT)
 	
 	ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
 	std::vector<Ogre::Vector3> & newPositions = ourWorld->getAllFishPositions(); // next position
+	//set new position and orientation after updates
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
 	{
-		Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3::UNIT_X; // why unit_x?
-		Ogre::Vector3 direction=fishNodes[i]->getPosition()- newPositions[i];
-		if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
+		//set new orientation
+		Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3(-1,0,0);//*(-1*Ogre::Vector3::UNIT_SCALE); // unit_x the direction of the fish naturally faces
+		Ogre::Vector3 direction=newPositions[i]-fishNodes[i]->getPosition();
+		/*8if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
 		{
            fishNodes[i]->yaw(Degree(180));
 		}
 		else
 		{
 			Ogre::Quaternion quat=orientation.getRotationTo(direction);
-			//fishNodes[i]->rotate(quat);
-		}
-		fishNodes[i]->setPosition(newPositions[i]);		
-		
+			fishNodes[i]->rotate(quat);
+		}*/
+		//set new position
+		//fishNodes[i]->setPosition(newPositions[i]);
+
+		fishNodes[i]->translate(direction);
+
 	}
 
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
@@ -184,9 +189,8 @@ void artSeaApp::updateWorld(Real deltaT)
 void artSeaApp::createScene(void)
 {
 	//////////////////////////////////////////////////////////////
-	//simulation test
-	//setting simulations parameters: howManyFlocks, flockSizes, model files
-	srand(time(NULL));
+	//simulation 
+	//setting simulation's stuff: howManyFlocks, flockSizes, model files
 	int howManyFlocks=2; // howManyFlocks setting
 	std::vector<int>flockSizes;
 	flockSizes.push_back(FIRST_FLOCK_SIZE); //flockSizes setting ; 100
@@ -202,8 +206,10 @@ void artSeaApp::createScene(void)
 		flockCenterFactors.push_back(1); //1.3
 		frictions.push_back(0.3);
 	}
+	srand(time(NULL));
 	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes,
 		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
+	ourWorld->addInteraction(0,1);
 	std::vector<FlockDescription*> flockDesc;
 	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
 	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
@@ -240,7 +246,7 @@ void artSeaApp::createScene(void)
 	{
 
 	}*/
-	//the end of simulation test
+	//the end of simulation part
 	////////////////////////////////////////////////////////////////////////////
 
 	// setup GUI system

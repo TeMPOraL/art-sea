@@ -9,7 +9,7 @@ static const Ogre::Real INFINITE_DISTANCE = 500000;
 static const int DEFAULT_VISIBILITY=70;
 static const int CLOSE_FRIENDS_DISTANCE=5;
 static const int DEFAULT_FLOCK_SIZE=50;
-static const int RANDOM_VECTOR_LENGTH=5;
+static const int RANDOM_VECTOR_LENGTH=500;
 static const float DEFAULT_RESOLUTION_FACTOR=1;
 static const float DEFAULT_DIRECTION_FACTOR=1; 
 static const float DEFAULT_CENTER_FACTOR=0.3;
@@ -101,6 +101,14 @@ public:
 		}
 	}
 
+	void updateVisiblePreys(Ogre::Vector3 mePreyVector)
+	{
+		
+	}
+	void updateVisiblePredators(Ogre::Vector3 mePredatorVector)
+	{
+	}
+
 	//force is NORMALIZED sum of COMPONENTS: resolution - not stick too close to the nearest friends, 
 	//flock center - all fish try to go to the center, flock direction - all fish try to follow
 	//the direction AND FRICTION FORCE
@@ -108,7 +116,6 @@ public:
 	{
 		if(myNearestFriendsCenter.length()> 0.0001f)
 		{
-			//myForce/=myForce.length();
 			myNearestFriendsCenter.normalise();
 		}
 		myNearestFriendsCenter*=SPEED_FACTOR;
@@ -127,18 +134,31 @@ public:
 		}
 		visibleFlockCenter*=SPEED_FACTOR;
 		
+		int howBigForceToPut=SPEED_FACTOR;
 
-		myForce=(flockDirectionFactor*visibleFlockDirection-
-		resolutionFactor*myNearestFriendsCenter+flockCenterFactor*visibleFlockCenter); 
+		//if the fish doesn't see anybody and doesn't know where to go it takes a random 
+		//direction. Since it has a direction, even if it doesn't see anybody it should go
+		//this direction
+		if(howManyVisible==0 && isSetMyOwnDirection==false)
+		{
+			isSetMyOwnDirection=true;
+			myForce=getRandomVector();
+			howBigForceToPut=100;
+		}
+		else
+		{
+			isSetMyOwnDirection=false;
+			myForce=(flockDirectionFactor*visibleFlockDirection-
+			resolutionFactor*myNearestFriendsCenter+flockCenterFactor*visibleFlockCenter); 
+		}
 		Ogre::Vector3 friction=frictionFactor*velocity; 
 		myForce-=friction; 
-		
 		if(myForce.length()> 0.0001f)
 		{
 			//myForce/=myForce.length();
 			myForce.normalise();
 		}
-		myForce*=SPEED_FACTOR;
+		myForce*=howBigForceToPut;
 	}	
 
 	// update position based on myForce - physics model
@@ -183,11 +203,15 @@ protected:
 	Ogre::Vector3 visibleFlockDirection; // flock direction visible from thisfish point of view
 	Ogre::Vector3 myNearestFriendsCenter; //show the point where the closest fish are - used in resolution
 	Ogre::Vector3 visibleFlockCenter; //flock center from this fish point of view
+	Ogre::Vector3 visiblePreys;
+	Ogre::Vector3 visiblePredators;
+	Ogre::Vector3 myOwnDirection;
 	Ogre::Vector3 myForce; //force whish cause fish movements
 	int howManyVisible; //how many othe fish this fish can see
 	int howManyCloseFriends; // how many close frends he has
 	int myHunger; //how hungry th fish is
 	static const int m=1; // weight right now the same for all fish
+	bool isSetMyOwnDirection;
 };
 
 //====================================================
@@ -205,6 +229,7 @@ public:
 		friction(DEFAULT_FRICTION_FACTOR)
 	{
 	}
+	~Flock(){};
 
 	//myPositions of fish in the flock setting randomly
 	Flock(int howMany,float directionFactor,float resolutionFactor,float centerFactor,float frictionFactor,int flockVisibility=DEFAULT_VISIBILITY):
@@ -239,12 +264,30 @@ public:
 	//fish? Check & make sure it's corrent. Everything const! Const references
 	const std::vector<Fish*>& getAllFish()
 	{
-		std::vector<Fish*> & ref = fishInTheFlock;
-		return ref;
+		return fishInTheFlock;
 	}
 
 	void updateAllFish(Ogre::Real deltaT,float direction,float resolution,float center,float friction);
-	~Flock(){};
+
+	void addPredator(Flock * predator)
+	{
+		myPredators.push_back(predator);
+	}
+
+	void addPrey(Flock * prey)
+	{
+		myPreys.push_back(prey);
+	}
+
+	const std::vector<Flock*>& getPredators()
+	{
+		return myPredators;
+	}
+
+	const std::vector<Flock*>& getPreys()
+	{
+		return myPreys;
+	}
 
 private:
 	void createFish(Ogre::Vector3 myPosition);
@@ -273,6 +316,8 @@ protected:
 	int flockSize;
 	float flockDirectionFactor,resolutionFactor,flockCenterFactor;
 	float friction;
+	std::vector<Flock*> myPredators; //pointers to flocks whisch run for me
+	std::vector<Flock*> myPreys; 
 };
 
 //====================================================
@@ -329,6 +374,12 @@ public:
 
 	void updateAllFish(Ogre::Real deltaT,std::vector<float>&direction,std::vector<float>&resolution,
 		std::vector<float>&center,std::vector<float>&frictions);
+
+	void addInteraction(int predator, int prey) // predator's id and prey's id
+	{
+		flocks[predator]->addPrey(flocks[prey]);
+		flocks[prey]->addPredator(flocks[predator]);
+	}
 
 private:
 	SimulationWorld(int howManyFlocks, std::vector<int> & sizes,
