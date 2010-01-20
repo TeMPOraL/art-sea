@@ -157,6 +157,7 @@ protected:
 	std::vector<float> flockCenterFactors;
 	std::vector<float> flockDirectionFactors;
 	std::vector<float> frictions;
+	std::vector<float> cameraFactors;
 
 	static const int getMaxNumberOfFish()
 	{

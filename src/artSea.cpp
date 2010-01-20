@@ -55,8 +55,8 @@ static const Real DEFAULT_TIMESCALE = 1.0;
 static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
 static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
 static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 10000.0;
-static const int FIRST_FLOCK_SIZE=100;
-static const int SECOND_FLOCK_SIZE=60;
+static const int FIRST_FLOCK_SIZE=40;
+static const int SECOND_FLOCK_SIZE=4;
 
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)
@@ -153,7 +153,7 @@ void artSeaApp::updateWorld(Real deltaT)
 
 	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT."); 
 	
-	ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
+	ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors, mCamera); 
 	std::vector<Ogre::Vector3> & newPositions = ourWorld->getAllFishPositions(); // next position
 	//set new position and orientation after updates
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
@@ -205,11 +205,12 @@ void artSeaApp::createScene(void)
 		flockDirectionFactors.push_back(1);
 		flockCenterFactors.push_back(1); //1.3
 		frictions.push_back(0.3);
+		cameraFactors.push_back(1);
 	}
 	srand(time(NULL));
 	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes,
-		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
-	ourWorld->addInteraction(0,1);
+		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors); 
+	ourWorld->addInteraction(1,0); //(predator,prey)
 	std::vector<FlockDescription*> flockDesc;
 	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
 	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
@@ -356,6 +357,12 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 			->label("friction factor")
 			->group(groupName)
 			->helpString("Friction factor for flock members.");
+		flocksTweakWindow->addRealVariable("camera factor" + groupName, cameraFactors[i])
+			->precision(2)
+			->label("camera factor")
+			->group(groupName)
+			->helpString("Set how far fish wants to stay from the camera. The bigger, the further");
+
 	} 
 
 	//==== PURE STATISTICS :)
