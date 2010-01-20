@@ -1,9 +1,9 @@
 #include"simulation.h"
 #include"Debug.h"
 #include<time.h>
-static const int SCREEN_X=600;
+static const int SCREEN_X=500;
 static const int SCREEN_Y=450;
-static const int SCREEN_Z=10;
+static const int SCREEN_Z=5;
 
 //====================================================
 // Flock
@@ -30,7 +30,7 @@ void Flock::createAllFish()
 //calculate the vector where the flock is going from each fish point of view
 //and calculate a vector between the fish and visible friends (distance)
 //based on these vectors calculates force where each fish should go and the next position
-void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, float center,float friction)
+void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, float center,float friction,float cameraFactor,Ogre::Camera * camera)
 {
 	this->flockDirectionFactor=direction;
 	this->resolutionFactor=resolution;
@@ -44,29 +44,14 @@ void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, f
 	for(int i=0; i<getFlockSize(); ++i)
 	{
 		int seenNumber=0;
+		int seenPredators=0;
 		for(int j=i+1; j<getFlockSize(); ++j)
 		{
-			//add to each fish friend direction vector, and vector between the fish and it's friend
-			//ARTSEA_LOG<<"visibility"<<getFlockVisibility();
-			if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
+			//escaping from camera is a priority
+			if((camera->getPosition()-fishInTheFlock[i]->getPosition()).length()<getVisiblity())
 			{
-				++seenNumber;
-				fishInTheFlock[i]->incrementVisibleFish();
-				fishInTheFlock[j]->incrementVisibleFish();
-				fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getForce());
-				fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getForce());
-				fishInTheFlock[i]->updateVisibleFlockCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());
-				fishInTheFlock[j]->updateVisibleFlockCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());
-
-				if(getSquaredDistance(fishInTheFlock[i],fishInTheFlock[j])<=CLOSE_FRIENDS_DISTANCE) //a fish tries to be away not from all other fish he can see, but only from close friends
-				{
-					fishInTheFlock[i]->incrementCloseFriends();
-					fishInTheFlock[j]->incrementCloseFriends();
-					fishInTheFlock[i]->updatemyNearestFriendsCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());	//update...( vector between fish i and fish j)
-					fishInTheFlock[j]->updatemyNearestFriendsCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());	
-				}
+				fishInTheFlock[i]->updateEscapeFromCamera(camera->getPosition()-fishInTheFlock[i]->getPosition());
 			}
-		
 			//looking for enemies:
 			//predators
 			for(int unsigned k=0; k<myPredators.size(); ++k)
@@ -77,24 +62,49 @@ void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, f
 					if(canSeeEachOther(fishInTheFlock[i],enemies[j]))
 					{
 						fishInTheFlock[i]->updateVisiblePredators(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
+						++seenPredators;
 					}
 				}
 			}
-			//preys
-			for(unsigned int k=0; k<myPreys.size(); ++k)
+			if(seenPredators==0)
 			{
-				const std::vector<Fish*>&enemies=myPreys[k]->getAllFish();
-				for(unsigned int j=0; j<enemies.size(); ++j)
+				//add to each fish friend direction vector, and vector between the fish and it's friend
+				//ARTSEA_LOG<<"visibility"<<getFlockVisibility();
+				if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
 				{
-					if(canSeeEachOther(fishInTheFlock[i],enemies[j]))
+					++seenNumber;
+					fishInTheFlock[i]->incrementVisibleFish();
+					fishInTheFlock[j]->incrementVisibleFish();
+					fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getForce());
+					fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getForce());
+					fishInTheFlock[i]->updateVisibleFlockCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());
+					fishInTheFlock[j]->updateVisibleFlockCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());
+
+					if(getSquaredDistance(fishInTheFlock[i],fishInTheFlock[j])<=CLOSE_FRIENDS_DISTANCE) //a fish tries to be away not from all other fish he can see, but only from close friends
 					{
-						fishInTheFlock[i]->updateVisiblePredators(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
+						fishInTheFlock[i]->incrementCloseFriends();
+						fishInTheFlock[j]->incrementCloseFriends();
+						fishInTheFlock[i]->updatemyNearestFriendsCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());	//update...( vector between fish i and fish j)
+						fishInTheFlock[j]->updatemyNearestFriendsCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());	
+					}
+				}
+			
+				//preys; predator can see preys at least at the beginning
+				for(unsigned int k=0; k<myPreys.size(); ++k)
+				{
+					const std::vector<Fish*>&enemies=myPreys[k]->getAllFish();
+					for(unsigned int j=0; j<enemies.size(); ++j)
+					{
+						if(canSeeEachOther(fishInTheFlock[i],enemies[j]))
+						{
+							fishInTheFlock[i]->updateVisiblePreys(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
+						}
 					}
 				}
 			}
 		}
 		//fishInTheFlock[i]->calculateForce(1.5,0.2,1.8);
-		fishInTheFlock[i]->calculateForce(flockDirectionFactor,resolutionFactor,flockCenterFactor,friction,deltaT);
+		fishInTheFlock[i]->calculateForce(flockDirectionFactor,resolutionFactor,flockCenterFactor,friction,cameraFactor,deltaT);
 		fishInTheFlock[i]->updatePosition(deltaT);
 	}
 }
@@ -118,6 +128,7 @@ void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes,
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();
 	}
+	flocks[1]->setVisibility(1000); // set predators visibility individually
 }
 
 void SimulationWorld::setAllFishPositionsAndFlocks()
@@ -133,11 +144,11 @@ void SimulationWorld::setAllFishPositionsAndFlocks()
 }
 
 void SimulationWorld::updateAllFish(Ogre::Real deltaT,std::vector<float>&directions,
-	std::vector<float>&resolutions,std::vector<float>&centers,std::vector<float>&frictions)
+									std::vector<float>&resolutions,std::vector<float>&centers,std::vector<float>&frictions,std::vector<float>&cameraFactors,Ogre::Camera*camera)
 {
 	for(int i=0; i<getHowManyFlocks(); ++i)
 	{
-		flocks[i]->updateAllFish(deltaT,directions[i],resolutions[i],centers[i],frictions[i]);
+		flocks[i]->updateAllFish(deltaT,directions[i],resolutions[i],centers[i],frictions[i],cameraFactors[i],camera);
 	}
 	allFishPositions.clear();
 	for(int i=0; i<getHowManyFlocks(); ++i)

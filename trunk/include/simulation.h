@@ -7,13 +7,14 @@
    
 static const Ogre::Real INFINITE_DISTANCE = 500000;
 static const int DEFAULT_VISIBILITY=70;
-static const int CLOSE_FRIENDS_DISTANCE=5;
+static const int CLOSE_FRIENDS_DISTANCE=30;
 static const int DEFAULT_FLOCK_SIZE=50;
 static const int RANDOM_VECTOR_LENGTH=500;
 static const float DEFAULT_RESOLUTION_FACTOR=1;
 static const float DEFAULT_DIRECTION_FACTOR=1; 
 static const float DEFAULT_CENTER_FACTOR=0.3;
 static const float DEFAULT_FRICTION_FACTOR=20;
+static const int ESCAPING_CONSTANT=2;
 static const int SPEED_FACTOR=5;
 static int counter=0;
 //static const float k=0.3;
@@ -103,18 +104,29 @@ public:
 
 	void updateVisiblePreys(Ogre::Vector3 mePreyVector)
 	{
-		
+		if(mePreyVector.length()>0.5)
+		{
+			visiblePreys+=ESCAPING_CONSTANT/(mePreyVector*mePreyVector);
+		}
 	}
 	void updateVisiblePredators(Ogre::Vector3 mePredatorVector)
 	{
+		if(mePredatorVector.length()>0.5)
+		{
+			visiblePredators+=ESCAPING_CONSTANT/(mePredatorVector*mePredatorVector);
+		}
+	}
+	void updateEscapeFromCamera(Ogre::Vector3 meCameraVector)
+	{
+		cameraEscapeForce=-meCameraVector;
 	}
 
 	//force is NORMALIZED sum of COMPONENTS: resolution - not stick too close to the nearest friends, 
 	//flock center - all fish try to go to the center, flock direction - all fish try to follow
 	//the direction AND FRICTION FORCE
-	void calculateForce(float flockDirectionFactor,float resolutionFactor,float flockCenterFactor,float frictionFactor, Ogre::Real deltaT)
+	void calculateForce(float flockDirectionFactor,float resolutionFactor,float flockCenterFactor,float frictionFactor,float cameraFactor, Ogre::Real deltaT)
 	{
-		if(myNearestFriendsCenter.length()> 0.0001f)
+		/**if(myNearestFriendsCenter.length()> 0.0001f)
 		{
 			myNearestFriendsCenter.normalise();
 		}
@@ -132,7 +144,7 @@ public:
 			//myForce/=myForce.length();
 			visibleFlockCenter.normalise();
 		}
-		visibleFlockCenter*=SPEED_FACTOR;
+		visibleFlockCenter*=SPEED_FACTOR;*/
 		
 		int howBigForceToPut=SPEED_FACTOR;
 
@@ -147,18 +159,38 @@ public:
 		}
 		else
 		{
+			ARTSEA_LOG<<"direction"<<visibleFlockDirection<<"center"<<visibleFlockCenter<<"res"<<myNearestFriendsCenter;
 			isSetMyOwnDirection=false;
-			myForce=(flockDirectionFactor*visibleFlockDirection-
-			resolutionFactor*myNearestFriendsCenter+flockCenterFactor*visibleFlockCenter); 
+			myForce=(flockDirectionFactor*visibleFlockDirection+flockCenterFactor*visibleFlockCenter+cameraFactor*cameraEscapeForce); 
 		}
 		Ogre::Vector3 friction=frictionFactor*velocity; 
 		myForce-=friction; 
-		if(myForce.length()> 0.0001f)
+		//myForce/=myForce.length();
+		myForce.normalise();
+		myNearestFriendsCenter.normalise();
+		myForce-=resolutionFactor*myNearestFriendsCenter;
+		myForce.normalise();
+		myForce+=10*visiblePreys; //how much going prey's direction
+		if(visiblePredators!=Ogre::Vector3::ZERO)
 		{
-			//myForce/=myForce.length();
-			myForce.normalise();
+			myForce=-visiblePredators;
 		}
-		myForce*=howBigForceToPut;
+		
+		myForce.normalise();
+		if(visiblePredators!=Ogre::Vector3::ZERO)
+		{
+			myForce*=(2*howBigForceToPut); //escaping speed
+		}
+		else
+		{
+			myForce*=howBigForceToPut;
+		}
+		if(visiblePreys!=Ogre::Vector3::ZERO)
+		{
+			ARTSEA_LOG<<"sa ofiary"<<myForce;
+		}
+
+		//ARTSEA_LOG<<"how many close"<<howManyCloseFriends;
 	}	
 
 	// update position based on myForce - physics model
@@ -173,6 +205,8 @@ public:
 		visibleFlockCenter=Ogre::Vector3::ZERO;
 		visibleFlockDirection=Ogre::Vector3::ZERO;
 		myNearestFriendsCenter=Ogre::Vector3::ZERO;
+		visiblePredators=Ogre::Vector3::ZERO;
+		visiblePreys=Ogre::Vector3::ZERO;
 		howManyCloseFriends=0;
 		howManyVisible=0;
 	}
@@ -206,6 +240,7 @@ protected:
 	Ogre::Vector3 visiblePreys;
 	Ogre::Vector3 visiblePredators;
 	Ogre::Vector3 myOwnDirection;
+	Ogre::Vector3 cameraEscapeForce;
 	Ogre::Vector3 myForce; //force whish cause fish movements
 	int howManyVisible; //how many othe fish this fish can see
 	int howManyCloseFriends; // how many close frends he has
@@ -267,7 +302,7 @@ public:
 		return fishInTheFlock;
 	}
 
-	void updateAllFish(Ogre::Real deltaT,float direction,float resolution,float center,float friction);
+	void updateAllFish(Ogre::Real deltaT,float direction,float resolution,float center,float friction,float cameraFactor, Ogre::Camera * camera);
 
 	void addPredator(Flock * predator)
 	{
@@ -287,6 +322,14 @@ public:
 	const std::vector<Flock*>& getPreys()
 	{
 		return myPreys;
+	}
+	void setVisibility(int visibility)
+	{
+		this->visibility=visibility;
+	}
+	int getVisiblity()
+	{
+		return this->visibility;
 	}
 
 private:
@@ -335,7 +378,7 @@ public:
 
 	static SimulationWorld* getSimulationWorld(int howManyFlocks, std::vector<int>& sizes,
 		std::vector<float>&directions,std::vector<float>&resolutions,std::vector<float>&centers,
-		std::vector<float>&frictions)
+		std::vector<float>&frictions, std::vector<float>&cameraFactors)
 	{
 		if(singletonFlag==false)
 		{
@@ -373,13 +416,14 @@ public:
 	void setAllFishPositionsAndFlocks();
 
 	void updateAllFish(Ogre::Real deltaT,std::vector<float>&direction,std::vector<float>&resolution,
-		std::vector<float>&center,std::vector<float>&frictions);
+		std::vector<float>&center,std::vector<float>&frictions,std::vector<float>& cameraFactors,Ogre::Camera*camera);
 
 	void addInteraction(int predator, int prey) // predator's id and prey's id
 	{
 		flocks[predator]->addPrey(flocks[prey]);
 		flocks[prey]->addPredator(flocks[predator]);
 	}
+
 
 private:
 	SimulationWorld(int howManyFlocks, std::vector<int> & sizes,
