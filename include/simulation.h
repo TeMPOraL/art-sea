@@ -111,9 +111,21 @@ public:
 	}
 	void updateVisiblePredators(Ogre::Vector3 mePredatorVector)
 	{
-		if(mePredatorVector.length()>0.5)
+		if(howManyVisible>1)
 		{
-			visiblePredators+=ESCAPING_CONSTANT/(mePredatorVector*mePredatorVector);
+			visiblePredators*=(howManyVisiblePredators-1);
+			if(mePredatorVector.length()>0.5)
+			{
+				visiblePredators+=ESCAPING_CONSTANT/(mePredatorVector*mePredatorVector);
+			}
+			visiblePredators/=howManyVisiblePredators;
+		}
+		else
+		{
+			if(mePredatorVector.length()>0.5)
+			{
+				visiblePredators+=ESCAPING_CONSTANT/(mePredatorVector*mePredatorVector);
+			}
 		}
 	}
 	void updateEscapeFromCamera(Ogre::Vector3 meCameraVector)
@@ -210,11 +222,16 @@ public:
 		cameraEscapeForce=Ogre::Vector3::ZERO;
 		howManyCloseFriends=0;
 		howManyVisible=0;
+		howManyVisiblePredators=0;
 	}
 
 	void incrementVisibleFish()
 	{
 		++howManyVisible;
+	}
+	void incrementVisiblePredators()
+	{
+		++howManyVisiblePredators;
 	}
 
 	void incrementCloseFriends()
@@ -245,6 +262,7 @@ protected:
 	Ogre::Vector3 myForce; //force whish cause fish movements
 	int howManyVisible; //how many othe fish this fish can see
 	int howManyCloseFriends; // how many close frends he has
+	int howManyVisiblePredators;
 	int myHunger; //how hungry th fish is
 	static const int m=1; // weight right now the same for all fish
 	bool isSetMyOwnDirection;
@@ -279,7 +297,7 @@ public:
 	{
 	}
 	
-	void createAllFish();
+	void createAllFish(int x0, int y0);
 
 	int getFlockVisibility()
 	{
