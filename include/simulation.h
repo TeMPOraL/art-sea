@@ -161,7 +161,7 @@ public:
 		{
 			ARTSEA_LOG<<"direction"<<visibleFlockDirection<<"center"<<visibleFlockCenter<<"res"<<myNearestFriendsCenter;
 			isSetMyOwnDirection=false;
-			myForce=(flockDirectionFactor*visibleFlockDirection+flockCenterFactor*visibleFlockCenter+cameraFactor*cameraEscapeForce); 
+			myForce=(flockDirectionFactor*visibleFlockDirection+flockCenterFactor*visibleFlockCenter+(cameraEscapeForce)); 
 		}
 		Ogre::Vector3 friction=frictionFactor*velocity; 
 		myForce-=friction; 

@@ -48,56 +48,59 @@ void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, f
 		for(int j=i+1; j<getFlockSize(); ++j)
 		{
 			//escaping from camera is a priority
-			if((camera->getPosition()-fishInTheFlock[i]->getPosition()).length()<2*getVisiblity()) // how far from camera the fish escapes = 2*visibility
+			if((camera->getPosition()-fishInTheFlock[i]->getPosition()).length()<(getVisiblity()*cameraFactor)) // how far from camera the fish escapes = 2*visibility
 			{
 				fishInTheFlock[i]->updateEscapeFromCamera(camera->getPosition()-fishInTheFlock[i]->getPosition());
 			}
-			//looking for enemies:
-			//predators
-			for(int unsigned k=0; k<myPredators.size(); ++k)
+			else
 			{
-				const std::vector<Fish*>&enemies=myPredators[k]->getAllFish();
-				for(int unsigned j=0; j<enemies.size(); ++j)
+				//looking for enemies:
+				//predators
+				for(int unsigned k=0; k<myPredators.size(); ++k)
 				{
-					if(canSeeEachOther(fishInTheFlock[i],enemies[j]))
-					{
-						fishInTheFlock[i]->updateVisiblePredators(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
-						++seenPredators;
-					}
-				}
-			}
-			if(seenPredators==0)
-			{
-				//add to each fish friend direction vector, and vector between the fish and it's friend
-				//ARTSEA_LOG<<"visibility"<<getFlockVisibility();
-				if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
-				{
-					++seenNumber;
-					fishInTheFlock[i]->incrementVisibleFish();
-					fishInTheFlock[j]->incrementVisibleFish();
-					fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getForce());
-					fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getForce());
-					fishInTheFlock[i]->updateVisibleFlockCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());
-					fishInTheFlock[j]->updateVisibleFlockCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());
-
-					if(getSquaredDistance(fishInTheFlock[i],fishInTheFlock[j])<=CLOSE_FRIENDS_DISTANCE) //a fish tries to be away not from all other fish he can see, but only from close friends
-					{
-						fishInTheFlock[i]->incrementCloseFriends();
-						fishInTheFlock[j]->incrementCloseFriends();
-						fishInTheFlock[i]->updatemyNearestFriendsCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());	//update...( vector between fish i and fish j)
-						fishInTheFlock[j]->updatemyNearestFriendsCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());	
-					}
-				}
-			
-				//preys; predator can see preys at least at the beginning
-				for(unsigned int k=0; k<myPreys.size(); ++k)
-				{
-					const std::vector<Fish*>&enemies=myPreys[k]->getAllFish();
-					for(unsigned int j=0; j<enemies.size(); ++j)
+					const std::vector<Fish*>&enemies=myPredators[k]->getAllFish();
+					for(int unsigned j=0; j<enemies.size(); ++j)
 					{
 						if(canSeeEachOther(fishInTheFlock[i],enemies[j]))
 						{
-							fishInTheFlock[i]->updateVisiblePreys(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
+							fishInTheFlock[i]->updateVisiblePredators(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
+							++seenPredators;
+						}
+					}
+				}
+				if(seenPredators==0)
+				{
+					//add to each fish friend direction vector, and vector between the fish and it's friend
+					//ARTSEA_LOG<<"visibility"<<getFlockVisibility();
+					if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
+					{
+						++seenNumber;
+						fishInTheFlock[i]->incrementVisibleFish();
+						fishInTheFlock[j]->incrementVisibleFish();
+						fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getForce());
+						fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getForce());
+						fishInTheFlock[i]->updateVisibleFlockCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());
+						fishInTheFlock[j]->updateVisibleFlockCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());
+
+						if(getSquaredDistance(fishInTheFlock[i],fishInTheFlock[j])<=CLOSE_FRIENDS_DISTANCE) //a fish tries to be away not from all other fish he can see, but only from close friends
+						{
+							fishInTheFlock[i]->incrementCloseFriends();
+							fishInTheFlock[j]->incrementCloseFriends();
+							fishInTheFlock[i]->updatemyNearestFriendsCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());	//update...( vector between fish i and fish j)
+							fishInTheFlock[j]->updatemyNearestFriendsCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());	
+						}
+					}
+				
+					//preys; predator can see preys at least at the beginning
+					for(unsigned int k=0; k<myPreys.size(); ++k)
+					{
+						const std::vector<Fish*>&enemies=myPreys[k]->getAllFish();
+						for(unsigned int j=0; j<enemies.size(); ++j)
+						{
+							if(canSeeEachOther(fishInTheFlock[i],enemies[j]))
+							{
+								fishInTheFlock[i]->updateVisiblePreys(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
+							}
 						}
 					}
 				}
