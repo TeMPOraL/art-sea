@@ -55,7 +55,7 @@ static const Real DEFAULT_TIMESCALE = 1.0;
 static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
 static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
 static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 10000.0;
-static const int FIRST_FLOCK_SIZE=40;
+static const int FIRST_FLOCK_SIZE=400;
 static const int SECOND_FLOCK_SIZE=4;
 
 //-------------------------------------------------------------------------------------
@@ -210,7 +210,7 @@ void artSeaApp::createScene(void)
 	srand(time(NULL));
 	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes,
 		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors); 
-	ourWorld->addInteraction(1,0); //(predator,prey)
+	//ourWorld->addInteraction(1,0); //(predator,prey)
 	std::vector<FlockDescription*> flockDesc;
 	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
 	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));

@@ -207,6 +207,7 @@ public:
 		myNearestFriendsCenter=Ogre::Vector3::ZERO;
 		visiblePredators=Ogre::Vector3::ZERO;
 		visiblePreys=Ogre::Vector3::ZERO;
+		cameraEscapeForce=Ogre::Vector3::ZERO;
 		howManyCloseFriends=0;
 		howManyVisible=0;
 	}
@@ -267,13 +268,14 @@ public:
 	~Flock(){};
 
 	//myPositions of fish in the flock setting randomly
-	Flock(int howMany,float directionFactor,float resolutionFactor,float centerFactor,float frictionFactor,int flockVisibility=DEFAULT_VISIBILITY):
+	Flock(int howMany,float directionFactor,float resolutionFactor,float centerFactor,float frictionFactor,float camFactor,int flockVisibility=DEFAULT_VISIBILITY):
 		flockSize(howMany),
 		visibility(flockVisibility),
 		flockDirectionFactor(directionFactor),
 		resolutionFactor(resolutionFactor),
 		flockCenterFactor(centerFactor),	
-		friction(frictionFactor)
+		friction(frictionFactor),
+		cameraFactor(camFactor)
 	{
 	}
 	
@@ -357,7 +359,7 @@ protected:
 	int visibility;				//how far each fish can see; the same for all fish from the flock;
 								//fish can see everywhere arund in the sphere. visibility=radius of this sphere
 	int flockSize;
-	float flockDirectionFactor,resolutionFactor,flockCenterFactor;
+	float flockDirectionFactor,resolutionFactor,flockCenterFactor,cameraFactor;
 	float friction;
 	std::vector<Flock*> myPredators; //pointers to flocks whisch run for me
 	std::vector<Flock*> myPreys; 
@@ -383,7 +385,7 @@ public:
 		if(singletonFlag==false)
 		{
 			singleton= new SimulationWorld(howManyFlocks,sizes,directions,resolutions,centers,
-			frictions);
+			frictions,cameraFactors);
 		}
 		return singleton;
 	}
@@ -401,7 +403,7 @@ public:
 	void showWorld();
 
 	void createFlocks(int howMany,std::vector<int>&sizes,std::vector<float>&directions,
-		std::vector<float>&resolutions,std::vector<float>&centers,std::vector<float>&frictions);
+		std::vector<float>&resolutions,std::vector<float>&centers,std::vector<float>&frictions,std::vector<float>&cameraFactors);
 	
 	std::vector<Ogre::Vector3> & getAllFishPositions()
 	{
@@ -428,12 +430,12 @@ public:
 private:
 	SimulationWorld(int howManyFlocks, std::vector<int> & sizes,
 		std::vector<float>&directions,std::vector<float>&resolutions,
-		std::vector<float>&centers,std::vector<float>&frictions)
+		std::vector<float>&centers,std::vector<float>&frictions,std::vector<float>&cameraFactors)
 	{
 		if(singleton==0)
 		{
 			setHowManyFlocks(howManyFlocks);
-			createFlocks(getHowManyFlocks(),sizes,directions,resolutions,centers,frictions);
+			createFlocks(getHowManyFlocks(),sizes,directions,resolutions,centers,frictions,cameraFactors);
 			setAllFishPositionsAndFlocks();
 			singletonFlag=true;
 		}
