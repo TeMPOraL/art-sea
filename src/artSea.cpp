@@ -55,8 +55,9 @@ static const Real DEFAULT_TIMESCALE = 1.0;
 static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
 static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
 static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 10000.0;
-static const int FIRST_FLOCK_SIZE=300;
-static const int SECOND_FLOCK_SIZE=60;
+static const int FIRST_FLOCK_SIZE=400;
+static const int SECOND_FLOCK_SIZE=30;
+static const int THIRD_FLOCK_SIZE=5;
 
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)
@@ -153,23 +154,28 @@ void artSeaApp::updateWorld(Real deltaT)
 
 	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT."); 
 	
-	ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
+	ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors, mCamera); 
 	std::vector<Ogre::Vector3> & newPositions = ourWorld->getAllFishPositions(); // next position
+	//set new position and orientation after updates
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
 	{
-		Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3::UNIT_X; // why unit_x?
-		Ogre::Vector3 direction=fishNodes[i]->getPosition()- newPositions[i];
-		if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
+		//set new orientation
+		Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3(-1,0,0);//*(-1*Ogre::Vector3::UNIT_SCALE); // unit_x the direction of the fish naturally faces
+		Ogre::Vector3 direction=newPositions[i]-fishNodes[i]->getPosition();
+		/*8if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
 		{
            fishNodes[i]->yaw(Degree(180));
 		}
 		else
 		{
 			Ogre::Quaternion quat=orientation.getRotationTo(direction);
-			//fishNodes[i]->rotate(quat);
-		}
-		fishNodes[i]->setPosition(newPositions[i]);		
-		
+			fishNodes[i]->rotate(quat);
+		}*/
+		//set new position
+		//fishNodes[i]->setPosition(newPositions[i]);
+
+		fishNodes[i]->translate(direction);
+
 	}
 
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
@@ -184,13 +190,13 @@ void artSeaApp::updateWorld(Real deltaT)
 void artSeaApp::createScene(void)
 {
 	//////////////////////////////////////////////////////////////
-	//simulation test
-	//setting simulations parameters: howManyFlocks, flockSizes, model files
-	srand(time(NULL));
-	int howManyFlocks=2; // howManyFlocks setting
+	//simulation 
+	//setting simulation's stuff: howManyFlocks, flockSizes, model files
+	int howManyFlocks=3; // howManyFlocks setting
 	std::vector<int>flockSizes;
 	flockSizes.push_back(FIRST_FLOCK_SIZE); //flockSizes setting ; 100
 	flockSizes.push_back(SECOND_FLOCK_SIZE);
+	flockSizes.push_back(THIRD_FLOCK_SIZE);
 	std::vector<int> & sizes= flockSizes;
 	//creates howManyFlocks with given sizes; calls createFlocks() and setAllFishPositionsAndFlocks
 	
@@ -201,11 +207,15 @@ void artSeaApp::createScene(void)
 		flockDirectionFactors.push_back(1);
 		flockCenterFactors.push_back(1); //1.3
 		frictions.push_back(0.3);
+		cameraFactors.push_back(0.3);
 	}
+	srand(time(NULL));
 	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes,
-		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions); 
+		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors); 
+	ourWorld->addInteraction(2,1); //(predator,prey) jfp predator flock 2, prey flock 1 - don't change it!!!
 	std::vector<FlockDescription*> flockDesc;
 	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
+	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
 	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
 	std::vector<Vector3> & positions=ourWorld->getAllFishPositions();
 	std::vector<int> & flocks = ourWorld->getAllFishFlocks();
@@ -240,7 +250,7 @@ void artSeaApp::createScene(void)
 	{
 
 	}*/
-	//the end of simulation test
+	//the end of simulation part
 	////////////////////////////////////////////////////////////////////////////
 
 	// setup GUI system
@@ -350,6 +360,12 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 			->label("friction factor")
 			->group(groupName)
 			->helpString("Friction factor for flock members.");
+		flocksTweakWindow->addRealVariable("camera factor" + groupName, cameraFactors[i])
+			->precision(2)
+			->label("camera factor")
+			->group(groupName)
+			->helpString("Set how far fish wants to stay from the camera. The bigger, the further");
+
 	} 
 
 	//==== PURE STATISTICS :)
