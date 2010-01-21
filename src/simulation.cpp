@@ -48,7 +48,7 @@ void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, f
 		for(int j=i+1; j<getFlockSize(); ++j)
 		{
 			//escaping from camera is a priority
-			if((camera->getPosition()-fishInTheFlock[i]->getPosition()).length()<getVisiblity())
+			if((camera->getPosition()-fishInTheFlock[i]->getPosition()).length()<2*getVisiblity()) // how far from camera the fish escapes = 2*visibility
 			{
 				fishInTheFlock[i]->updateEscapeFromCamera(camera->getPosition()-fishInTheFlock[i]->getPosition());
 			}
@@ -119,11 +119,11 @@ SimulationWorld *SimulationWorld::singleton=0;
 
 void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes,
 								   std::vector<float>&directions,std::vector<float>&resolutions,
-								   std::vector<float>&centers,std::vector<float>&frictions)
+								   std::vector<float>&centers,std::vector<float>&frictions,std::vector<float>&cameraFactors)
 {
 	for(int i=0; i<howMany; ++i)
 	{
-		Flock * newFlock = new Flock(sizes[i],directions[i],resolutions[i],centers[i],frictions[i]); 
+		Flock * newFlock = new Flock(sizes[i],directions[i],resolutions[i],centers[i],frictions[i],cameraFactors[i]); 
 
 		flocks.push_back(newFlock);
 		newFlock->createAllFish();
