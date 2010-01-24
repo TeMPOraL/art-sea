@@ -172,7 +172,12 @@ private:
 	int howManyFish;
 	static const int MAX_NUMBER_OF_FISH=2000;
 	std::vector<AnimationEntity *> animationEntities;
-	SimulationWorld * ourWorld;
+	std::vector<Flock*>flocks;
+
+
+	//new variables; old need to be cleaned
+	std::vector<String>modelNames;
+	int howManyFlocks;
 
 };
 

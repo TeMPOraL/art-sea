@@ -1,203 +1,56 @@
 #include"simulation.h"
 #include"Debug.h"
 #include<time.h>
-static const int SCREEN_X=500;
+/**static const int SCREEN_X=500;
 static const int SCREEN_Y=450;
-static const int SCREEN_Z=5;
+static const int SCREEN_Z=5;*/
 
 //====================================================
 // Flock
 //====================================================
 
-void Flock::createFish(Ogre::Vector3 position)
+Flock::Flock(unsigned int size,float centerFactor,float resolutionFactor,float directionFactor,float friction, int flockVisibility,int terytoryCenter,int terytorySize):
+		  _size(size),
+		  _centerFactor(centerFactor),
+		  _resolutionFactor(resolutionFactor),
+		  _directionFactor(directionFactor),
+		  _frictionFactor(friction),
+		  _flockVisibility(flockVisibility),
+		  _startingTerytoryCenter(terytoryCenter),
+		  _startignTerytorySize(terytorySize)
 {
-	Fish * const fish= new Fish(position);
-	fishInTheFlock.push_back(fish);
-}
-
-void Flock::createAllFish(int x0, int y0)
-{
-	if(flockSize>=400) // big flocks
+	
+	for(unsigned int i=0; i<size; ++i)
 	{
-	for(int i=0; i<flockSize; ++i)
-	{
-		int x,y,z;
-		x=rand()%SCREEN_X-SCREEN_X/2;
-		y=rand()%SCREEN_Y-SCREEN_Y/2;
-		z=rand()%SCREEN_Z;
-		createFish(Ogre::Vector3(x,y,z));
-	}
-	} 
-	else //small flocks set their placement
-	{
-		for(int i=0; i<flockSize; ++i)
-		{
-			int x,y,z;
-			x=x0+rand()%SCREEN_X/3-SCREEN_X/6;
-			y=y0+rand()%SCREEN_Y/3-SCREEN_Y/6;
-			z=rand()%SCREEN_Z;
-			createFish(Ogre::Vector3(x,y,z));
-		}
+		int x=terytoryCenter+rand()%(terytorySize)-(terytorySize/2);
+		int y=terytoryCenter+rand()%(terytorySize)-(terytorySize/2);
+		int z=rand()%10-5;
+		Ogre::Vector3 pos=Ogre::Vector3(x,y,z);
+		fish.push_back(new Fish(pos));
 	}
 }
+ 
 
-//calculate the vector where the flock is going from each fish point of view
-//and calculate a vector between the fish and visible friends (distance)
-//based on these vectors calculates force where each fish should go and the next position
-void Flock::updateAllFish(Ogre::Real deltaT, float direction,float resolution, float center,float friction,float cameraFactor,Ogre::Camera * camera)
+//update all fish based on the friends seen by him
+void Flock::updateAllFish(Ogre::Real deltaT)
 {
-	this->flockDirectionFactor=direction;
-	this->resolutionFactor=resolution;
-	this->flockCenterFactor=center;
-	this->friction=friction;
-
-	for(int i=0; i<getFlockSize(); ++i)
+	for(unsigned int i=0; i<fish.size(); ++i)
 	{
-		fishInTheFlock[i]->initFishDataBeforeUpdating();
+		fish[i]->init();
 	}
-	for(int i=0; i<getFlockSize(); ++i)
+	for(unsigned int i=0; i<fish.size(); ++i)
 	{
-		int seenNumber=0;
-		int seenPredators=0;
-		for(int j=i+1; j<getFlockSize(); ++j)
+		for(unsigned int j=i+1; j<fish.size(); ++j)
 		{
-			//escaping from camera is a priority
-			if((camera->getPosition()-fishInTheFlock[i]->getPosition()).length()<(getVisiblity()*cameraFactor)) // how far from camera the fish escapes = 2*visibility
+			if(fish[i]->getPosition().squaredDistance(fish[j]->getPosition())<
+				(_flockVisibility*_flockVisibility)) // two fish cansee each other
 			{
-				fishInTheFlock[i]->updateEscapeFromCamera(camera->getPosition()-fishInTheFlock[i]->getPosition());
-			}
-			else
-			{
-				//looking for enemies:
-				//predators
-				for(int unsigned k=0; k<myPredators.size(); ++k)
-				{
-					const std::vector<Fish*>&enemies=myPredators[k]->getAllFish();
-					for(int unsigned j=0; j<enemies.size(); ++j)
-					{
-						if(canSeeEachOther(fishInTheFlock[i],enemies[j]))
-						{
-							fishInTheFlock[i]->updateVisiblePredators(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
-							++seenPredators;
-							fishInTheFlock[j]->incrementVisiblePredators();
-						}
-					}
-				}
-				if(seenPredators==0)
-				{
-					//add to each fish friend direction vector, and vector between the fish and it's friend
-					//ARTSEA_LOG<<"visibility"<<getFlockVisibility();
-					if(canSeeEachOther(fishInTheFlock[i], fishInTheFlock[j]))
-					{
-						++seenNumber;
-						fishInTheFlock[i]->incrementVisibleFish();
-						fishInTheFlock[j]->incrementVisibleFish();
-						fishInTheFlock[i]->updateFlockDirection(fishInTheFlock[j]->getForce());
-						fishInTheFlock[j]->updateFlockDirection(fishInTheFlock[i]->getForce());
-						fishInTheFlock[i]->updateVisibleFlockCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());
-						fishInTheFlock[j]->updateVisibleFlockCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());
-
-						if(getSquaredDistance(fishInTheFlock[i],fishInTheFlock[j])<=CLOSE_FRIENDS_DISTANCE) //a fish tries to be away not from all other fish he can see, but only from close friends
-						{
-							fishInTheFlock[i]->incrementCloseFriends();
-							fishInTheFlock[j]->incrementCloseFriends();
-							fishInTheFlock[i]->updatemyNearestFriendsCenter(fishInTheFlock[j]->getPosition()-fishInTheFlock[i]->getPosition());	//update...( vector between fish i and fish j)
-							fishInTheFlock[j]->updatemyNearestFriendsCenter(fishInTheFlock[i]->getPosition()-fishInTheFlock[j]->getPosition());	
-						}
-					}
-				
-					//preys; predator can see preys at least at the beginning
-					for(unsigned int k=0; k<myPreys.size(); ++k)
-					{
-						const std::vector<Fish*>&enemies=myPreys[k]->getAllFish();
-						for(unsigned int j=0; j<enemies.size(); ++j)
-						{
-							if(canSeeEachOther(fishInTheFlock[i],enemies[j]))
-							{
-								fishInTheFlock[i]->updateVisiblePreys(enemies[j]->getPosition()-fishInTheFlock[i]->getPosition());
-
-							}
-						}
-					}
-				}
+				fish[i]->incrementVisibleFriends();
+				fish[j]->incrementVisibleFriends();
+				fish[i]->updateFriendsPosition(fish[j]->getPosition());
+				fish[j]->updateFriendsPosition(fish[i]->getPosition());
 			}
 		}
-		//fishInTheFlock[i]->calculateForce(1.5,0.2,1.8);
-		fishInTheFlock[i]->calculateForce(flockDirectionFactor,resolutionFactor,flockCenterFactor,friction,cameraFactor,deltaT);
-		fishInTheFlock[i]->updatePosition(deltaT);
-	}
-}
-
-
-//====================================================
-// SimulationWorld (singleton)
-//====================================================
-
-bool SimulationWorld::singletonFlag=false;
-SimulationWorld *SimulationWorld::singleton=0;
-
-void SimulationWorld::createFlocks(int howMany, std::vector<int> & sizes,
-								   std::vector<float>&directions,std::vector<float>&resolutions,
-								   std::vector<float>&centers,std::vector<float>&frictions,std::vector<float>&cameraFactors)
-{
-	for(int i=0; i<howMany; ++i)
-	{
-		Flock * newFlock = new Flock(sizes[i],directions[i],resolutions[i],centers[i],frictions[i],cameraFactors[i]); 
-
-		flocks.push_back(newFlock);
-		if(i==0)
-		{
-			newFlock->createAllFish(0,0);
-		}
-		if(i==1) // first small flock placement FIXE IT jfp
-		{
-			newFlock->createAllFish(50,50);
-		}
-		if(i==2)
-		{
-			newFlock->createAllFish(70,75);
-		}
-	}
-	flocks[2]->setVisibility(1000); // set predators visibility individually
-}
-
-void SimulationWorld::setAllFishPositionsAndFlocks()
-{
-	for(int i=0; i<getHowManyFlocks(); ++i)
-	{
-		for(int j=0; j<flocks[i]->getFlockSize(); ++j)
-		{
-			allFishPositions.push_back(flocks[i]->getAllFish()[j]->getPosition());
-			allFishFlocks.push_back(i);
-		}
-	}
-}
-
-void SimulationWorld::updateAllFish(Ogre::Real deltaT,std::vector<float>&directions,
-									std::vector<float>&resolutions,std::vector<float>&centers,std::vector<float>&frictions,std::vector<float>&cameraFactors,Ogre::Camera*camera)
-{
-	for(int i=0; i<getHowManyFlocks(); ++i)
-	{
-		flocks[i]->updateAllFish(deltaT,directions[i],resolutions[i],centers[i],frictions[i],cameraFactors[i],camera);
-	}
-	allFishPositions.clear();
-	for(int i=0; i<getHowManyFlocks(); ++i)
-	{
-		std::vector<Fish *> fishTmpVector=flocks[i]->getAllFish();
-		for(int j=0; j<flocks[i]->getFlockSize(); ++j)
-		{
-			allFishPositions.push_back(fishTmpVector[j]->getPosition());
-		}
-	}
-}
-
-//debug log's positions & flocks of all fish
-void SimulationWorld::showWorld()
-{
-	ARTSEA_DEBUG_LOG<<"I'm gonna show you my world";
-	for(unsigned int i=0; i<allFishPositions.size(); ++i)
-	{
-		ARTSEA_DEBUG_LOG<<"positions:"<<allFishPositions[i].x<<allFishPositions[i].y<<
-			allFishPositions[i].z<<" "<<allFishFlocks[i];
+		fish[i]->updateMyPosition(_centerFactor,_frictionFactor,deltaT);
 	}
 }
