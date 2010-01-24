@@ -59,6 +59,7 @@ static const int FIRST_FLOCK_SIZE=400;
 static const int SECOND_FLOCK_SIZE=30;
 static const int THIRD_FLOCK_SIZE=5;
 
+
 //-------------------------------------------------------------------------------------
 artSeaApp::artSeaApp(void)
 {
@@ -154,7 +155,20 @@ void artSeaApp::updateWorld(Real deltaT)
 
 	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT."); 
 	
-	ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors, mCamera); 
+	unsigned int counter=0;
+	for(int i=0; i<howManyFlocks; ++i)
+	{
+		flocks[i]->updateAllFish(deltaT);
+		std::vector<Fish*> & fish=flocks[i]->getAllFish();
+		for(unsigned int j=0; j<fish.size(); ++j)
+		{
+			fishNodes[counter]->setPosition(fish[j]->getPosition());
+			++counter;
+		}
+	}
+	
+
+	/**ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors, mCamera); 
 	std::vector<Ogre::Vector3> & newPositions = ourWorld->getAllFishPositions(); // next position
 	//set new position and orientation after updates
 	for(unsigned int i=0; i<fishEntities.size(); ++i)
@@ -162,7 +176,7 @@ void artSeaApp::updateWorld(Real deltaT)
 		//set new orientation
 		Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3(-1,0,0);//*(-1*Ogre::Vector3::UNIT_SCALE); // unit_x the direction of the fish naturally faces
 		Ogre::Vector3 direction=newPositions[i]-fishNodes[i]->getPosition();
-		/*8if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
+		if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
 		{
            fishNodes[i]->yaw(Degree(180));
 		}
@@ -170,13 +184,13 @@ void artSeaApp::updateWorld(Real deltaT)
 		{
 			Ogre::Quaternion quat=orientation.getRotationTo(direction);
 			fishNodes[i]->rotate(quat);
-		}*/
+		}
 		//set new position
 		//fishNodes[i]->setPosition(newPositions[i]);
 
 		fishNodes[i]->translate(direction);
 
-	}
+	}*/
 
 	//NOTE Uncomment this to see an example of how artSea's debugging framework works.
 	//ARTSEA_ASSERT(0, "Should never get here.");
@@ -191,66 +205,38 @@ void artSeaApp::createScene(void)
 {
 	//////////////////////////////////////////////////////////////
 	//simulation 
-	//setting simulation's stuff: howManyFlocks, flockSizes, model files
-	int howManyFlocks=3; // howManyFlocks setting
-	std::vector<int>flockSizes;
-	flockSizes.push_back(FIRST_FLOCK_SIZE); //flockSizes setting ; 100
-	flockSizes.push_back(SECOND_FLOCK_SIZE);
-	flockSizes.push_back(THIRD_FLOCK_SIZE);
-	std::vector<int> & sizes= flockSizes;
-	//creates howManyFlocks with given sizes; calls createFlocks() and setAllFishPositionsAndFlocks
-	
-	//standard flocking parameters
+	srand(time(NULL));
+	howManyFlocks=3;
+	flocks.push_back(new Flock(10,50,1,1,0.3,20,0,50)); //Flock(size,centerFactor,innyFactor,innyFactor,friction,visibility,terytory
+	flocks.push_back(new Flock(20,50,1,1,0.3,20,50,50));
+	flocks.push_back(new Flock(10,50,1,1,0.3,20,50,50));
+	modelNames.push_back("fish.mesh");
+	modelNames.push_back("rybka.mesh");
+	modelNames.push_back("fish.mesh");
+	int counter=0;
+
 	for(int i=0; i<howManyFlocks; ++i)
 	{
-		resolutionFactors.push_back(1); //0.2
-		flockDirectionFactors.push_back(1);
-		flockCenterFactors.push_back(1); //1.3
-		frictions.push_back(0.3);
-		cameraFactors.push_back(0.3);
-	}
-	srand(time(NULL));
-	ourWorld=SimulationWorld::getSimulationWorld(howManyFlocks,sizes,
-		flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors); 
-	ourWorld->addInteraction(2,1); //(predator,prey) jfp predator flock 2, prey flock 1 - don't change it!!!
-	std::vector<FlockDescription*> flockDesc;
-	flockDesc.push_back(new FlockDescription(flockSizes.at(0),"fish.mesh",5));//model files settings
-	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
-	flockDesc.push_back(new FlockDescription(flockSizes.at(1),"rybka.mesh",5));
-	std::vector<Vector3> & positions=ourWorld->getAllFishPositions();
-	std::vector<int> & flocks = ourWorld->getAllFishFlocks();
-	int prev=0;
-	ARTSEA_DEBUG_LOG<<positions.size();
-
-	//creating entities and settingother ogre module stuff (entities,nodes,positions...) 
-	//based on simulation module
-	for(unsigned int i=0; i<positions.size(); ++i)
-	{
-
-		ARTSEA_DEBUG_LOG<<positions[i].x<<positions[i].y<<positions[i].z;
-		String name="fish";
-		String postfix = lexical_cast<String>(i);
-		name+=postfix;
-		String modelName;
-		prev=0;
-		modelName=flockDesc[flocks[i]]->getFlockModelFileName();
-		ARTSEA_DEBUG_LOG<<modelName;
-
-		fishEntities.push_back(mSceneMgr->createEntity(name,modelName));
-		fishNodes.push_back(mSceneMgr->getRootSceneNode()->createChildSceneNode());
-		fishNodes[i]->setPosition(positions[i]);
-		fishNodes[i]->attachObject(fishEntities[i]);
-		//fishNodes[i]->scale(2,2,2);
-		if(modelName=="rybka.mesh")
+		unsigned int thisFlockSize=flocks[i]->getSize();
+		String modelName=modelNames[i];
+		for(unsigned int j=0; j<thisFlockSize; ++j)
 		{
-			fishNodes[i]->scale(15,15,15);
+			String fishName="fish"+lexical_cast<String>(counter);
+			fishEntities.push_back(mSceneMgr->createEntity(fishName,modelName));
+			fishNodes.push_back(mSceneMgr->getRootSceneNode()->createChildSceneNode());
+			fishNodes[counter]->setPosition(flocks[i]->getAllFish()[j]->getPosition());
+			fishNodes[counter]->attachObject(fishEntities[counter]);
+			if(modelName=="rybka.mesh")
+			{
+				fishNodes[counter]->scale(10,10,10);
+			}
+			++counter;
 		}
 	}
-	/**for(unsigned int i=0; i<positions.size(); ++i)
-	{
+	
 
-	}*/
-	//the end of simulation part
+
+	//end of simulation part
 	////////////////////////////////////////////////////////////////////////////
 
 	// setup GUI system
@@ -334,7 +320,7 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 
 
 	//==== FLOCKS TWEAKERS
-	flocksTweakWindow=tweakBarSupervisor->createTweakBar("Flocks","Flocks",Ogre::ColourValue::Green, "Tweak window for flocks parameters");
+	/**flocksTweakWindow=tweakBarSupervisor->createTweakBar("Flocks","Flocks",Ogre::ColourValue::Green, "Tweak window for flocks parameters");
 	flocksTweakWindow->getTwOgreWindow()->setPosition(300,300);
 	flocksTweakWindow->getTwOgreWindow()->iconify();
 	for(int i=0; i<howManyFlocks; ++i)
@@ -366,7 +352,7 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 			->group(groupName)
 			->helpString("Set how far fish wants to stay from the camera. The bigger, the further");
 
-	} 
+	} */
 
 	//==== PURE STATISTICS :)
 	statsTweakWindow = tweakBarSupervisor->createTweakBar("Stats", "Statistics", Ogre::ColourValue::Black, "Tweak window with read-only realtime statistics.");
