@@ -50,11 +50,16 @@ public:
 
 	void updateMyPosition(float centerFactor,float frictionFactor,Ogre::Real deltaT)
 	{
-		if(howManyVisibleFriends>0)
+		if(howManyVisibleFriends>0) //see some friends
 		{
 			_friendsPosition/=howManyVisibleFriends;
+			_myForce=centerFactor*(_friendsPosition-_myPosition);
 		}
-		_myForce=centerFactor*(_friendsPosition-_myPosition);
+		else //doesn't see anybody
+		{
+			_myForce=Ogre::Vector3(0,0,0);
+		}
+		friction=frictionFactor*velocity;
 		_myForce-=friction;
 		_myForce.normalise();
 		_myForce*=5;

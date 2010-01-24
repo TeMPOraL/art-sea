@@ -207,9 +207,9 @@ void artSeaApp::createScene(void)
 	//simulation 
 	srand(time(NULL));
 	howManyFlocks=3;
-	flocks.push_back(new Flock(10,50,1,1,0.3,20,0,50)); //Flock(size,centerFactor,innyFactor,innyFactor,friction,visibility,terytory
-	flocks.push_back(new Flock(20,50,1,1,0.3,20,50,50));
-	flocks.push_back(new Flock(10,50,1,1,0.3,20,50,50));
+	flocks.push_back(new Flock(10,50,1,1,0.1,50,0,50)); //Flock(size,centerFactor,innyFactor,innyFactor,friction,visibility,terytory
+	flocks.push_back(new Flock(20,50,1,1,0.1,50,50,50));
+	flocks.push_back(new Flock(10,50,1,1,0.1,50,50,50));
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
 	modelNames.push_back("fish.mesh");
