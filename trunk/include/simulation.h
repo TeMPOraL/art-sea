@@ -60,9 +60,9 @@ public:
 			_myForce=Ogre::Vector3(0,0,0);
 		}
 		friction=frictionFactor*velocity;
-		_myForce-=friction;
 		_myForce.normalise();
-		_myForce*=5;
+		_myForce-=friction;
+		_myForce*=10;
 		_myPosition+=velocity*deltaT;
 		velocity+=(_myForce/m)*deltaT;
 		/**_myForce=centerFactor*(_friendsPosition-_myPosition); //centerForce = makes me going to the center
