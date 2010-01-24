@@ -48,8 +48,16 @@ public:
 		_friendsPosition+=position;
 	}
 
+	void updateTooCloseFriends(Ogre::Vector3 position)
+	{
+		_tooCloseFriendsPosition+=position;
+	}
+
 	void updateMyPosition(float centerFactor,float frictionFactor,Ogre::Real deltaT)
 	{
+		ARTSEA_ASSERT(howManyVisibleFriends>=0,"Negative amount of friends");
+		ARTSEA_ASSERT(howManyTooCloseFriends>=0,"Negtive amount of too close friends");
+		
 		if(howManyVisibleFriends>0) //see some friends
 		{
 			_friendsPosition/=howManyVisibleFriends;
@@ -59,8 +67,15 @@ public:
 		{
 			_myForce=Ogre::Vector3(0,0,0);
 		}
-		friction=frictionFactor*velocity;
+
+		/**if(howManyTooCloseFriends>0) // have at least one too close friend - need to keep distance
+		{
+			_tooCloseFriendsPosition/=howManyTooCloseFriends;
+			_myForce-=(_tooCloseFriendsPosition-_myPosition);
+		}*/
+
 		_myForce.normalise();
+		friction=frictionFactor*velocity;
 		_myForce-=friction;
 		_myForce*=10;
 		_myPosition+=velocity*deltaT;
@@ -78,20 +93,27 @@ public:
 	void init()
 	{
 		_friendsPosition=Ogre::Vector3(0,0,0);
+		_tooCloseFriendsPosition=Ogre::Vector3(0,0,0);
 		howManyVisibleFriends=0;
+		howManyTooCloseFriends=0;
 	}
 	void incrementVisibleFriends()
 	{
 		++howManyVisibleFriends;
 	}
+	void incrementTooCloseFriends()
+	{
+		++howManyTooCloseFriends;
+	}
 
 protected:
 	Ogre::Vector3 _myPosition;
 	Ogre::Vector3 _friendsPosition;
+	Ogre::Vector3 _tooCloseFriendsPosition;
 	Ogre::Vector3 _myForce;
 	Ogre::Vector3 velocity;
 	Ogre::Vector3 friction;
-	int howManyVisibleFriends;
+	int howManyVisibleFriends, howManyTooCloseFriends;
 	int m;
 
 };
@@ -102,7 +124,7 @@ protected:
 class Flock
 {
 public:
-	Flock(unsigned int size,float centerFactor,float resolutionFactor,float directionFactor,float friction, int flockVisibility,int terytoryCenter,int terytorySize);
+	Flock(unsigned int size,float centerFactor,float resolutionFactor,float directionFactor,float friction, int flockVisibility,int teritoryCenter,int teritorySize,int minDistance);
 	
 	unsigned int getSize()
 	{
@@ -124,9 +146,10 @@ protected:
 	float _resolutionFactor;
 	float _directionFactor;
 	int _flockVisibility;
-	int _startingTerytoryCenter;
-	int _startignTerytorySize;
+	int _startingteritoryCenter;
+	int _startignteritorySize;
 	float _frictionFactor;
+	int _minDistance;
 	std::vector<Fish*>fish;
 
 };
