@@ -1,6 +1,14 @@
 #include"simulation.h"
 #include"Debug.h"
 #include<time.h>
+
+Ogre::Vector3 getRandomVector(int maxX,int maxY, int maxZ)
+{
+	float x=rand()%maxX - maxX/2;
+	float y=rand()%maxY-maxY/2;
+	float z=rand()%maxZ-maxZ/2;
+	return Ogre::Vector3(x,y,z);
+}
 /**static const int SCREEN_X=500;
 static const int SCREEN_Y=450;
 static const int SCREEN_Z=5;*/
@@ -29,6 +37,7 @@ Flock::Flock(unsigned int size,float centerFactor,float resolutionFactor,float d
 		Ogre::Vector3 pos=Ogre::Vector3(x,y,z);
 		fish.push_back(new Fish(pos));
 	}
+	isDirectionSet=false;
 }
  
 
@@ -39,6 +48,17 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 	_centerFactor=centerF;
 	_directionFactor=directionF;
 	_frictionFactor=friction;
+
+	if(_directionFactor>0 && isDirectionSet==false)
+	{
+		isDirectionSet=true;
+		direction=getRandomVector(100,100,50);
+	}
+	if(_directionFactor==0)
+	{
+		isDirectionSet=false;
+		direction=Ogre::Vector3(0,0,0);
+	}
 
 	for(unsigned int i=0; i<fish.size(); ++i)
 	{
@@ -70,6 +90,6 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 			}
 
 		}
-		fish[i]->updateMyPosition(_centerFactor,_directionFactor,_frictionFactor,deltaT);
+		fish[i]->updateMyPosition(_centerFactor,_directionFactor,direction,_frictionFactor,deltaT);
 	}
 }
