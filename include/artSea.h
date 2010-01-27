@@ -153,7 +153,7 @@ protected:
 	} statistics;
 
 	//Flock parameters
-	std::vector<float> resolutionFactors;
+	std::vector<float> minDistances;
 	std::vector<float> flockCenterFactors;
 	std::vector<float> flockDirectionFactors;
 	std::vector<float> frictions;

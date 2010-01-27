@@ -33,8 +33,13 @@ Flock::Flock(unsigned int size,float centerFactor,float resolutionFactor,float d
  
 
 //update all fish based on the friends seen by him
-void Flock::updateAllFish(Ogre::Real deltaT)
+void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance)
 {
+	_minDistance=minDistance;
+	_centerFactor=centerF;
+	_directionFactor=directionF;
+	_frictionFactor=friction;
+
 	for(unsigned int i=0; i<fish.size(); ++i)
 	{
 		fish[i]->init();
@@ -50,6 +55,9 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 				fish[j]->incrementVisibleFriends();
 				fish[i]->updateFriendsPosition(fish[j]->getPosition());
 				fish[j]->updateFriendsPosition(fish[i]->getPosition());
+				fish[i]->updateFriendsDirection(fish[j]->getForce());
+				fish[j]->updateFriendsDirection(fish[i]->getForce());
+
 
 				if(fish[i]->getPosition().squaredDistance(fish[j]->getPosition())<
 						(_minDistance*_minDistance))
@@ -62,6 +70,6 @@ void Flock::updateAllFish(Ogre::Real deltaT)
 			}
 
 		}
-		fish[i]->updateMyPosition(_centerFactor,_frictionFactor,deltaT);
+		fish[i]->updateMyPosition(_centerFactor,_directionFactor,_frictionFactor,deltaT);
 	}
 }

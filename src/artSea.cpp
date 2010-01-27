@@ -158,7 +158,7 @@ void artSeaApp::updateWorld(Real deltaT)
 	unsigned int counter=0;
 	for(int i=0; i<howManyFlocks; ++i)
 	{
-		flocks[i]->updateAllFish(deltaT);
+		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i]);
 		std::vector<Fish*> & fish=flocks[i]->getAllFish();
 		for(unsigned int j=0; j<fish.size(); ++j)
 		{
@@ -207,12 +207,21 @@ void artSeaApp::createScene(void)
 	//simulation 
 	srand(time(NULL));
 	howManyFlocks=3;
-	flocks.push_back(new Flock(10,50,1,1,0.1,50,0,50,5)); //Flock(size,centerFactor,innyFactor,innyFactor,friction,visibility,terytory
-	flocks.push_back(new Flock(20,50,1,1,0.1,50,50,50,5));
+	flocks.push_back(new Flock(10,50,1,1,0.1,50,0,50,5)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
+	flocks.push_back(new Flock(20,50,1,100,0.1,50,50,50,5));
 	flocks.push_back(new Flock(10,50,1,1,0.1,50,50,50,5));
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
 	modelNames.push_back("fish.mesh");
+	for(int i=0; i<howManyFlocks; ++i)
+	{
+		flockCenterFactors.push_back(50);
+		flockDirectionFactors.push_back(0);
+		minDistances.push_back(5);
+		frictions.push_back(0.1);
+		
+	}
+
 	int counter=0;
 
 	for(int i=0; i<howManyFlocks; ++i)
@@ -320,39 +329,39 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 
 
 	//==== FLOCKS TWEAKERS
-	/**flocksTweakWindow=tweakBarSupervisor->createTweakBar("Flocks","Flocks",Ogre::ColourValue::Green, "Tweak window for flocks parameters");
+	flocksTweakWindow=tweakBarSupervisor->createTweakBar("Flocks","Flocks",Ogre::ColourValue::Green, "Tweak window for flocks parameters");
 	flocksTweakWindow->getTwOgreWindow()->setPosition(300,300);
 	flocksTweakWindow->getTwOgreWindow()->iconify();
 	for(int i=0; i<howManyFlocks; ++i)
 	{
 		String groupName="Flock "+lexical_cast<String>(i);
-		flocksTweakWindow->addRealVariable("resolution factor" + groupName,resolutionFactors[i])
+		flocksTweakWindow->addRealVariable("Minimum distance" + groupName,minDistances[i])
 			->precision(2)
-			->label("resolution factor")
+			->label("Minimum distance")
 			->group(groupName)
-			->helpString("Resolution factor - how strong resolution effects flock's movement");
-		flocksTweakWindow->addRealVariable("direction factor" + groupName, flockDirectionFactors[i])
+			->helpString("Minimum distance between fish");
+		flocksTweakWindow->addRealVariable("Direction factor" + groupName, flockDirectionFactors[i])
 			->precision(2)
-			->label("direction factor")
+			->label("Direction factor")
 			->group(groupName)
 			->helpString("Flock's direction factor - how strong direction effects flock's movement");
-		flocksTweakWindow->addRealVariable("center factor" + groupName, flockCenterFactors[i])
+		flocksTweakWindow->addRealVariable("Center factor" + groupName, flockCenterFactors[i])
 			->precision(2)
-			->label("center factor")
+			->label("Center factor")
 			->group(groupName)
 			->helpString("Flock's center factor - how strong flock's center effects flock's movement");
 		flocksTweakWindow->addRealVariable("friction" + groupName, frictions[i])
 			->precision(2)
-			->label("friction factor")
+			->label("Friction factor")
 			->group(groupName)
 			->helpString("Friction factor for flock members.");
-		flocksTweakWindow->addRealVariable("camera factor" + groupName, cameraFactors[i])
+		/**flocksTweakWindow->addRealVariable("camera factor" + groupName, cameraFactors[i])
 			->precision(2)
-			->label("camera factor")
+			->label("Camera factor")
 			->group(groupName)
-			->helpString("Set how far fish wants to stay from the camera. The bigger, the further");
+			->helpString("Set how far fish wants to stay from the camera. The bigger, the further");*/
 
-	} */
+	} 
 
 	//==== PURE STATISTICS :)
 	statsTweakWindow = tweakBarSupervisor->createTweakBar("Stats", "Statistics", Ogre::ColourValue::Black, "Tweak window with read-only realtime statistics.");

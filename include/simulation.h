@@ -42,6 +42,10 @@ public:
 	{
 		return _myPosition;
 	}
+	Ogre::Vector3 getForce()
+	{
+		return _myForce;
+	}
 
 	void updateFriendsPosition(Ogre::Vector3 position)
 	{
@@ -52,24 +56,33 @@ public:
 		_tooCloseFriendsPosition+=position;
 	}
 
-	void updateMyPosition(float centerFactor,float frictionFactor,Ogre::Real deltaT)
+	void updateFriendsDirection(Ogre::Vector3 friendForce)
 	{
+		_friendsDirection+=friendForce;
+	}
+	void updateMyPosition(float centerFactor,float directionFactor,float frictionFactor,Ogre::Real deltaT)
+	{
+
 		if(howManyVisibleFriends>0) //see some friends
 		{
 			_friendsPosition/=howManyVisibleFriends;
+			//_friendsDirection/=howManyVisibleFriends;
 			_myForce=centerFactor*(_friendsPosition-_myPosition);
+			//_myForce+=_friendsDirection*directionFactor;
 		   
 			if(howManyTooCloseFriends>0) // have at least one too close friend - need to keep distance
 			{
 				_tooCloseFriendsPosition/=howManyTooCloseFriends;
 				_myForce-=(100*(_tooCloseFriendsPosition-_myPosition));
-				//ARTSEA_LOG<<"res "<<_myForce;
 			}
 		}
-		else //doesn't see anybody
+		/**if(_myForce.length()<3) //based on other fis doesn't know where to go; doesn't get any force from other fish
 		{
-			_myForce=Ogre::Vector3(0,0,0);
-		}
+			int x=rand()%200-100;
+			int y=rand()%200-100;
+			int z=rand()%10-5;
+			_myForce=Ogre::Vector3(x,y,z);
+		}*/
 		friction=frictionFactor*velocity;
 		_myForce.normalise();
 		_myForce-=friction;
@@ -90,6 +103,7 @@ public:
 	{
 		_friendsPosition=Ogre::Vector3(0,0,0);
 		_tooCloseFriendsPosition=Ogre::Vector3(0,0,0);
+		_friendsDirection=Ogre::Vector3(0,0,0);
 		howManyVisibleFriends=0;
 		howManyTooCloseFriends=0;
 	}
@@ -104,6 +118,7 @@ public:
 
 protected:
 	Ogre::Vector3 _myPosition;
+	Ogre::Vector3 _friendsDirection;
 	Ogre::Vector3 _friendsPosition;
 	Ogre::Vector3 _myForce;
 	Ogre::Vector3 velocity;
@@ -132,7 +147,7 @@ public:
 		std::vector<Fish*>& fishPointer=fish;
 		return fishPointer;
 	}
-	void updateAllFish(Ogre::Real deltaT);
+	void updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance);
 	
 protected:
 	void placeAllFish();
@@ -145,7 +160,7 @@ protected:
 	int _startingTerytoryCenter;
 	int _startignTerytorySize;
 	float _frictionFactor;
-	int _minDistance;
+	float _minDistance;
 	std::vector<Fish*>fish;
 
 };
