@@ -14,6 +14,39 @@ static const int SCREEN_Y=450;
 static const int SCREEN_Z=5;*/
 
 //====================================================
+// Fish
+//====================================================
+void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vector3 direction,float frictionFactor,Ogre::Real deltaT)
+{
+
+		if(howManyVisibleFriends>0) //see some friends
+		{
+			isSetMyOwnDirection=false;
+			_friendsPosition/=howManyVisibleFriends;
+			_myForce=centerFactor*(_friendsPosition-_myPosition);
+			_myForce+=directionFactor*direction;
+		   
+			if(howManyTooCloseFriends>0) // have at least one too close friend - need to keep distance
+			{
+				_tooCloseFriendsPosition/=howManyTooCloseFriends;
+				_myForce=-(100*(_tooCloseFriendsPosition-_myPosition));
+			}
+		}
+		else if(isSetMyOwnDirection==false) //doesn't have any friends; doesn't know wahat to do
+		{
+			isSetMyOwnDirection=true;
+			_myForce=getRandomVector(200,200,50);
+			ARTSEA_LOG<<"bla";
+		}
+		friction=frictionFactor*velocity;
+		_myForce.normalise();
+		_myForce-=friction;
+		_myForce*=10;
+		_myPosition+=velocity*deltaT;
+		velocity+=(_myForce/m)*deltaT;
+}
+
+//====================================================
 // Flock
 //====================================================
 
@@ -42,12 +75,13 @@ Flock::Flock(unsigned int size,float centerFactor,float resolutionFactor,float d
  
 
 //update all fish based on the friends seen by him
-void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance)
+void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance, int visibility)
 {
 	_minDistance=minDistance;
 	_centerFactor=centerF;
 	_directionFactor=directionF;
 	_frictionFactor=friction;
+	_flockVisibility=visibility;
 
 	if(_directionFactor>0 && isDirectionSet==false)
 	{
