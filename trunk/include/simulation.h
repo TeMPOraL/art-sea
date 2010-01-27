@@ -18,6 +18,7 @@ static const int ESCAPING_CONSTANT=2;
 static const int SPEED_FACTOR=5;
 static int counter=0;
 
+
 //TODO przekazujemy wskazniki do rybek nie const uwaac!!!!
 //static const float k=0.3;
 //====================================================
@@ -60,15 +61,14 @@ public:
 	{
 		_friendsDirection+=friendForce;
 	}
-	void updateMyPosition(float centerFactor,float directionFactor,float frictionFactor,Ogre::Real deltaT)
+	void updateMyPosition(float centerFactor,float directionFactor,Ogre::Vector3 direction,float frictionFactor,Ogre::Real deltaT)
 	{
 
 		if(howManyVisibleFriends>0) //see some friends
 		{
 			_friendsPosition/=howManyVisibleFriends;
-			//_friendsDirection/=howManyVisibleFriends;
 			_myForce=centerFactor*(_friendsPosition-_myPosition);
-			//_myForce+=_friendsDirection*directionFactor;
+			_myForce+=directionFactor*direction;
 		   
 			if(howManyTooCloseFriends>0) // have at least one too close friend - need to keep distance
 			{
@@ -161,6 +161,8 @@ protected:
 	int _startignTerytorySize;
 	float _frictionFactor;
 	float _minDistance;
+	Ogre::Vector3 direction;
+	bool isDirectionSet;
 	std::vector<Fish*>fish;
 
 };
