@@ -158,7 +158,7 @@ void artSeaApp::updateWorld(Real deltaT)
 	unsigned int counter=0;
 	for(int i=0; i<howManyFlocks; ++i)
 	{
-		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i]);
+		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i],visibilities[i]);
 		std::vector<Fish*> & fish=flocks[i]->getAllFish();
 		for(unsigned int j=0; j<fish.size(); ++j)
 		{
@@ -207,9 +207,9 @@ void artSeaApp::createScene(void)
 	//simulation 
 	srand(time(NULL));
 	howManyFlocks=3;
-	flocks.push_back(new Flock(10,50,1,1,0.1,50,0,50,5)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
-	flocks.push_back(new Flock(20,50,1,100,0.1,50,50,50,5));
-	flocks.push_back(new Flock(10,50,1,1,0.1,50,50,50,5));
+	flocks.push_back(new Flock(100,50,1,1,0.1,50,0,50,5)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
+	flocks.push_back(new Flock(200,50,1,100,0.1,50,50,50,5));
+	flocks.push_back(new Flock(100,50,1,1,0.1,50,50,50,5));
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
 	modelNames.push_back("fish.mesh");
@@ -219,6 +219,7 @@ void artSeaApp::createScene(void)
 		flockDirectionFactors.push_back(0);
 		minDistances.push_back(5);
 		frictions.push_back(0.1);
+		visibilities.push_back(50);
 		
 	}
 
@@ -355,11 +356,10 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 			->label("Friction factor")
 			->group(groupName)
 			->helpString("Friction factor for flock members.");
-		/**flocksTweakWindow->addRealVariable("camera factor" + groupName, cameraFactors[i])
-			->precision(2)
-			->label("Camera factor")
+		flocksTweakWindow->addIntegerVariable("Flock visibility" + groupName, visibilities[i])
+			->label("Flock visibility")
 			->group(groupName)
-			->helpString("Set how far fish wants to stay from the camera. The bigger, the further");*/
+			->helpString("Set how far fish wants to stay from the camera. The bigger, the further");
 
 	} 
 
