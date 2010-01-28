@@ -165,6 +165,7 @@ void artSeaApp::updateWorld(Real deltaT)
 	unsigned int counter=0;
 	for(int i=0; i<howManyFlocks; ++i)
 	{
+		ARTSEA_LOG<<"flock"<<i;
 		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i],visibilities[i]);
 		std::vector<Fish*> & fish=flocks[i]->getAllFish();
 		
@@ -179,7 +180,7 @@ void artSeaApp::updateWorld(Real deltaT)
 		{
 			Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3(-1,0,0);//*(-1*Ogre::Vector3::UNIT_SCALE); // unit_x the direction of the fish naturally faces
 			Ogre::Vector3 direction=fishNodes[i]->getPosition()-oldPos[i];
-			if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
+			/**if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
 			{
 			   fishNodes[i]->yaw(Degree(180));
 			}
@@ -187,7 +188,7 @@ void artSeaApp::updateWorld(Real deltaT)
 			{
 				Ogre::Quaternion quat=orientation.getRotationTo(direction);
 				fishNodes[i]->rotate(quat);
-			}
+			}*/
 			
 			//set new position
 			//fishNodes[i]->setPosition(newPositions[i]);
@@ -236,23 +237,36 @@ void artSeaApp::createScene(void)
 	//simulation 
 	srand(time(NULL));
 	howManyFlocks=3;
-	flocks.push_back(new Flock(50,50,1,1,0.1,50,0,100,5)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
-	flocks.push_back(new Flock(20,50,1,100,0.1,300,30,100,5));
-	flocks.push_back(new Flock(50,50,1,1,0.1,50,-50,100,5));
+
+	//0st flock
+	flockCenterFactors.push_back(50);
+	flockDirectionFactors.push_back(5);
+	minDistances.push_back(10);
+	frictions.push_back(0.1);
+	visibilities.push_back(30);
+
+	//1st flock predator
+	flockCenterFactors.push_back(50);
+	flockDirectionFactors.push_back(10);
+	minDistances.push_back(10);
+	frictions.push_back(0.1);
+	visibilities.push_back(100);	
+
+	//2st flock
+	flockCenterFactors.push_back(50);
+	flockDirectionFactors.push_back(5);
+	minDistances.push_back(5);
+	frictions.push_back(0.1);
+	visibilities.push_back(30);	
+	
+	flocks.push_back(new Flock(50,50,1,5,0.1,30,0,100,10)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
+	flocks.push_back(new Flock(20,50,1,10,0.1,100,100,100,10));
+	flocks.push_back(new Flock(50,50,1,5,0.1,30,-100,100,5));
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
 	modelNames.push_back("fish.mesh");
 	
-
-
-	for(int i=0; i<howManyFlocks; ++i)
-	{
-		flockCenterFactors.push_back(50);
-		flockDirectionFactors.push_back(0);
-		minDistances.push_back(5);
-		frictions.push_back(0.1);
-		visibilities.push_back(50);		
-	}
+	visibilities[1]=300;
 	std::vector<Fish*>& predators=flocks[1]->getAllFish();
 	for(unsigned int  i=0; i<predators.size(); ++i)
 	{
@@ -264,8 +278,8 @@ void artSeaApp::createScene(void)
 	{
 		flocks[1]->addVictim(victims[i]);
 	}
-	/**victims=flocks[2]->getAllFish();
-	for(unsigned int  i=0; i<5; ++i) 
+	/**ictims=flocks[2]->getAllFish();
+	for(unsigned int  i=0; i<30; ++i) 
 	{
 		flocks[1]->addVictim(victims[i]);
 	}*/
