@@ -59,6 +59,7 @@ static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 10000.0;
 static const int FIRST_FLOCK_SIZE=400;
 static const int SECOND_FLOCK_SIZE=30;
 static const int THIRD_FLOCK_SIZE=50;
+static const int FOURTH_FLOCK_SIZE=100;
 
 
 //-------------------------------------------------------------------------------------
@@ -166,7 +167,7 @@ void artSeaApp::updateWorld(Real deltaT)
 	for(int i=0; i<howManyFlocks; ++i)
 	{
 		ARTSEA_LOG<<"flock"<<i;
-		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i],visibilities[i],mCamera,100); //brak bania kamery
+		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i],visibilities[i],mCamera,cameraDistances[i]); //brak bania kamery
 		std::vector<Fish*> & fish=flocks[i]->getAllFish();
 		
 		for(unsigned int j=0; j<fish.size(); ++j)
@@ -238,35 +239,49 @@ void artSeaApp::createScene(void)
 	srand(time(NULL));
 	howManyFlocks=3;
 
-	//0st flock
+	//1st flock
 	flockCenterFactors.push_back(50);
 	flockDirectionFactors.push_back(5);
 	minDistances.push_back(10);
 	frictions.push_back(0.1);
 	visibilities.push_back(50);
+	cameraDistances.push_back(100);
 
-	//1st flock predator
+	//2st flock predator
 	flockCenterFactors.push_back(50);
 	flockDirectionFactors.push_back(10);
 	minDistances.push_back(10);
 	frictions.push_back(0.1);
-	visibilities.push_back(100);	
+	visibilities.push_back(100);
+	cameraDistances.push_back(30);
 
-	//2st flock
+	//3st flock
 	flockCenterFactors.push_back(50);
 	flockDirectionFactors.push_back(5);
 	minDistances.push_back(5);
 	frictions.push_back(0.1);
 	visibilities.push_back(50);	
+	cameraDistances.push_back(60);\
+
+	//4st flock
+	flockCenterFactors.push_back(10);
+	flockDirectionFactors.push_back(50);
+	minDistances.push_back(10);
+	frictions.push_back(0.1);
+	visibilities.push_back(30);	
+	cameraDistances.push_back(30);
 	
-	flocks.push_back(new Flock(FIRST_FLOCK_SIZE,50,1,5,0.1,30,0,100,10)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
-	flocks.push_back(new Flock(SECOND_FLOCK_SIZE,50,1,10,0.1,100,100,100,10));
+	flocks.push_back(new Flock(FIRST_FLOCK_SIZE,50,1,5,0.1,30,-100,100,10)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
+	flocks.push_back(new Flock(SECOND_FLOCK_SIZE,50,1,10,0.1,100,200,100,10));
 	flocks.push_back(new Flock(THIRD_FLOCK_SIZE,50,1,5,0.1,30,-100,100,5));
+	flocks.push_back(new Flock(FOURTH_FLOCK_SIZE,flockCenterFactors[3],1,flockDirectionFactors[3],frictions[3],visibilities[3],0,200,minDistances[3]));
+
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
 	modelNames.push_back("fish.mesh");
+	modelNames.push_back("rybka.mesh");
 	
-	/**std::vector<Fish*>& predators=flocks[1]->getAllFish();
+	std::vector<Fish*>& predators=flocks[1]->getAllFish();
 	for(unsigned int  i=0; i<predators.size(); ++i)
 	{
 		flocks[0]->addPreadator(predators[i]);
@@ -276,7 +291,7 @@ void artSeaApp::createScene(void)
 	for(unsigned int  i=0; i<30; ++i) 
 	{
 		flocks[1]->addVictim(victims[i]);
-	}*/
+	}
 	/**ictims=flocks[2]->getAllFish();
 	for(unsigned int  i=0; i<30; ++i) 
 	{
@@ -420,7 +435,11 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 			->label("Flock visibility")
 			->group(groupName)
 			->helpString("Set how far fish wants to stay from the camera. The bigger, the further");
-
+		flocksTweakWindow->addRealVariable("Camera distances" + groupName, cameraDistances[i])
+			->precision(2)
+			->label("Camera distances")
+			->group(groupName)
+			->helpString("How close to the fish can we get with the camera");
 	} 
 
 	//==== PURE STATISTICS :)
