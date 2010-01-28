@@ -65,7 +65,7 @@ void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vecto
 	//ARTSEA_LOG<<"camera"<<cameraDistance<<" "<<camera->getPosition();
 	if(_myPosition.squaredDistance(camera->getPosition())<cameraDistance*cameraDistance)//escaping from camera
 	{
-		_myForce+=300*(_myPosition-camera->getPosition());
+		_myForce+=500*(_myPosition-camera->getPosition());
 	}
 		friction=frictionFactor*velocity;
 		_myForce.normalise();
