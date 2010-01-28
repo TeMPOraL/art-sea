@@ -70,7 +70,7 @@ public:
 	{
 		_victimsPos+=pos;
 	}
-	void updateMyPosition(float centerFactor,float directionFactor,Ogre::Vector3 direction,float frictionFactor,Ogre::Real deltaT);
+	void updateMyPosition(float centerFactor,float directionFactor,Ogre::Vector3 direction,float frictionFactor,Ogre::Real deltaT,Ogre::Camera *camera, float cameraDistance);
 	void init()
 	{
 		_friendsPosition=Ogre::Vector3(0,0,0);
@@ -137,7 +137,7 @@ public:
 		std::vector<Fish*>& fishPointer=fish;
 		return fishPointer;
 	}
-	void updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance,int visibility);
+	void updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance,int visibility,Ogre::Camera *camera,float cameraDistance);
 	void addPreadator(Fish * fish);
 	void addVictim(Fish* fish);
 
@@ -158,6 +158,7 @@ protected:
 	std::vector<Fish*>fish;
 	std::vector<Fish*>predators;
 	std::vector<Fish*>victims;
+	float _cameraDistance;
 };
 
 #endif 
