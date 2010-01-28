@@ -44,7 +44,7 @@ LGPL like the rest of the OGRE engine.
 #include "Debug.h"
 
 #include<stdio.h>
-#include <FMOD.hpp>
+//[snd] #include <FMOD.hpp>
 #include "lexical_cast.h"
 #include "simulation.h"
 
@@ -78,7 +78,7 @@ artSeaApp::artSeaApp(void)
 	nearClippingDistance = DEFAULT_NEAR_CLIPPING_DISTANCE;
 	farClippingDistance = DEFAULT_FAR_CLIPPING_DISTANCE;
 
-	soundSystem = NULL;
+	//[snd] soundSystem = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ artSeaApp::~artSeaApp(void)
 
 	delete tweakBarSupervisor;
 
-	soundSystem->release();
+	//[snd] soundSystem->release();
 }
 
 //================================================================
@@ -111,7 +111,7 @@ bool artSeaApp::frameStarted(const FrameEvent& evt)
 	mCamera->setNearClipDistance(nearClippingDistance);
 	mCamera->setFarClipDistance(farClippingDistance);
 
-	soundSystem->update();
+	//[snd] soundSystem->update();
 
 	return (result && true);
 }
@@ -417,27 +417,27 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 	mSceneMgr->setSkyBox(true, "artSea/SkyBox");
 
 	//sound init
-	FMOD_RESULT res = FMOD::System_Create(&soundSystem);
-	if(res != FMOD_OK)
-	{
-		throw std::runtime_error( "Failed to create sound system.");
-	}
-	res = soundSystem->init(10, FMOD_INIT_NORMAL, NULL);
+	//[snd] FMOD_RESULT res = FMOD::System_Create(&soundSystem);
+	//[snd] if(res != FMOD_OK)
+	//[snd] {
+	//[snd] 	throw std::runtime_error( "Failed to create sound system.");
+	//[snd] }
+	//[snd] res = soundSystem->init(10, FMOD_INIT_NORMAL, NULL);
 
-	if(res != FMOD_OK)
-	{
-		throw std::runtime_error("Failed to initialize sound system.");
-	}
+	//[snd] if(res != FMOD_OK)
+	//[snd] {
+	//[snd] 	throw std::runtime_error("Failed to initialize sound system.");
+	//[snd] }
 
-	FMOD::Sound* sound;
-	res = soundSystem->createStream("../../media/music.mp3", FMOD_DEFAULT | FMOD_LOOP_NORMAL, NULL, &sound);
+	//[snd] FMOD::Sound* sound;
+	//[snd] res = soundSystem->createStream("../../media/music.mp3", FMOD_DEFAULT | FMOD_LOOP_NORMAL, NULL, &sound);
 
-	if(res != FMOD_OK)
-	{
-		throw std::runtime_error("Failed to load music.");
-	}
+	//[snd] if(res != FMOD_OK)
+	//[snd] {
+	//[snd] 	throw std::runtime_error("Failed to load music.");
+	//[snd] }
 
-	soundSystem->playSound(FMOD_CHANNEL_FREE, sound, false, NULL);
+	//[snd] soundSystem->playSound(FMOD_CHANNEL_FREE, sound, false, NULL);
 
 }
 
