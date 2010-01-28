@@ -34,6 +34,8 @@ LGPL like the rest of the OGRE engine.
 
 //#include <Hydrax/Hydrax.h>
 
+#include <FMOD.hpp>
+
 #include <TwOgre.h>
 #include "ergoTwGui.h"
 
@@ -179,6 +181,9 @@ private:
 	//new variables; old need to be cleaned
 	std::vector<String>modelNames;
 	int howManyFlocks;
+
+	//sound stuff
+	FMOD::System* soundSystem;
 
 };
 

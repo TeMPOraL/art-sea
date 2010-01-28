@@ -44,6 +44,7 @@ LGPL like the rest of the OGRE engine.
 #include "Debug.h"
 
 #include<stdio.h>
+#include <FMOD.hpp>
 #include "lexical_cast.h"
 #include "simulation.h"
 
@@ -76,6 +77,8 @@ artSeaApp::artSeaApp(void)
 	statsTweakWindow = NULL;
 	nearClippingDistance = DEFAULT_NEAR_CLIPPING_DISTANCE;
 	farClippingDistance = DEFAULT_FAR_CLIPPING_DISTANCE;
+
+	soundSystem = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -87,6 +90,8 @@ artSeaApp::~artSeaApp(void)
 //	}
 
 	delete tweakBarSupervisor;
+
+	soundSystem->release();
 }
 
 //================================================================
@@ -105,6 +110,8 @@ bool artSeaApp::frameStarted(const FrameEvent& evt)
 	//update variables
 	mCamera->setNearClipDistance(nearClippingDistance);
 	mCamera->setFarClipDistance(farClippingDistance);
+
+	soundSystem->update();
 
 	return (result && true);
 }
@@ -408,6 +415,29 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 		->group("Rendering");
 
 	mSceneMgr->setSkyBox(true, "artSea/SkyBox");
+
+	//sound init
+	FMOD_RESULT res = FMOD::System_Create(&soundSystem);
+	if(res != FMOD_OK)
+	{
+		throw std::runtime_error( "Failed to create sound system.");
+	}
+	res = soundSystem->init(10, FMOD_INIT_NORMAL, NULL);
+
+	if(res != FMOD_OK)
+	{
+		throw std::runtime_error("Failed to initialize sound system.");
+	}
+
+	FMOD::Sound* sound;
+	res = soundSystem->createStream("../../media/music.mp3", FMOD_DEFAULT | FMOD_LOOP_NORMAL, NULL, &sound);
+
+	if(res != FMOD_OK)
+	{
+		throw std::runtime_error("Failed to load music.");
+	}
+
+	soundSystem->playSound(FMOD_CHANNEL_FREE, sound, false, NULL);
 
 }
 
