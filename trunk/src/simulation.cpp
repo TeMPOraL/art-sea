@@ -40,11 +40,11 @@ void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vecto
 			_myForce=centerFactor*(_friendsPosition-_myPosition);
 			_myForce+=directionFactor*direction;
 		   
-			if(howManyTooCloseFriends>0) // have at least one too close friend - need to keep distance
+			/**if(howManyTooCloseFriends>0) // have at least one too close friend - need to keep distance
 			{
 				_tooCloseFriendsPosition/=howManyTooCloseFriends;
 				_myForce=-(100*(_tooCloseFriendsPosition-_myPosition));
-			}
+			}*/
 		}
 		else   //doesn't have any friends; doesn't know wahat to do
 		{
@@ -55,6 +55,11 @@ void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vecto
 				}
 				_myForce=_myOwnDirection;
 		}
+	}
+	if(howManyTooCloseFriends>0) // have at least one too close friend - need to keep distance
+	{
+				_tooCloseFriendsPosition/=howManyTooCloseFriends;
+				_myForce=-(100*(_tooCloseFriendsPosition-_myPosition));
 	}
 		friction=frictionFactor*velocity;
 		_myForce.normalise();
@@ -92,7 +97,7 @@ Flock::Flock(unsigned int size,float centerFactor,float resolutionFactor,float d
 }
  
 
-//update all fish based on the friends seen by him
+//update all fish based on the friends and enemies seen by him
 void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance, int visibility)
 {
 	_minDistance=minDistance;
@@ -125,6 +130,7 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 				if(fish[i]->getPosition().squaredDistance(predators[j]->getPosition())<
 					(_flockVisibility*_flockVisibility))
 				{
+					ARTSEA_LOG<<"widze wroga"<<i;
 					fish[i]->incrementPredators();
 					fish[i]->updatePredatorsPosition(predators[j]->getPosition());
 					isEnemy=true;
@@ -140,32 +146,27 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 					isEnemy=true;
 				}
 			}
-			if(isEnemy==false)
+			for(unsigned int j=i+1; j<fish.size(); ++j)
 			{
-				for(unsigned int j=i+1; j<fish.size(); ++j)
-				{
-					if(fish[i]->getPosition().squaredDistance(fish[j]->getPosition())<
-						(_flockVisibility*_flockVisibility)) // two fish can see each other
-					{
-						fish[i]->incrementVisibleFriends();
-						fish[j]->incrementVisibleFriends();
-						fish[i]->updateFriendsPosition(fish[j]->getPosition());
-						fish[j]->updateFriendsPosition(fish[i]->getPosition());
-						fish[i]->updateFriendsDirection(fish[j]->getForce());
-						fish[j]->updateFriendsDirection(fish[i]->getForce());
-
-
-						if(fish[i]->getPosition().squaredDistance(fish[j]->getPosition())<
-								(_minDistance*_minDistance))
+				if(fish[i]->getPosition().squaredDistance(fish[j]->getPosition())<
+								(_minDistance*_minDistance)) // make sure you don't crash with the othe fish
 						{
 							fish[i]->incrementTooCloseFriends();
 							fish[j]->incrementTooCloseFriends();
 							fish[i]->updateTooCloseFriends(fish[j]->getPosition());
 							fish[j]->updateTooCloseFriends(fish[i]->getPosition());
 						}
-					}
-
+				if(isEnemy==false && fish[i]->getPosition().squaredDistance(fish[j]->getPosition())<
+				(_flockVisibility*_flockVisibility)) // two fish can see each other. movement
+				{
+						fish[i]->incrementVisibleFriends();
+						fish[j]->incrementVisibleFriends();
+						fish[i]->updateFriendsPosition(fish[j]->getPosition());
+						fish[j]->updateFriendsPosition(fish[i]->getPosition());
+						fish[i]->updateFriendsDirection(fish[j]->getForce());
+						fish[j]->updateFriendsDirection(fish[i]->getForce());
 				}
+
 			}
 			fish[i]->updateMyPosition(_centerFactor,_directionFactor,direction,_frictionFactor,deltaT);
 		}
