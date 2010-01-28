@@ -58,7 +58,7 @@ static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
 static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 10000.0;
 static const int FIRST_FLOCK_SIZE=400;
 static const int SECOND_FLOCK_SIZE=30;
-static const int THIRD_FLOCK_SIZE=5;
+static const int THIRD_FLOCK_SIZE=50;
 
 
 //-------------------------------------------------------------------------------------
@@ -166,7 +166,7 @@ void artSeaApp::updateWorld(Real deltaT)
 	for(int i=0; i<howManyFlocks; ++i)
 	{
 		ARTSEA_LOG<<"flock"<<i;
-		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i],visibilities[i]);
+		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i],visibilities[i],mCamera,100); //brak bania kamery
 		std::vector<Fish*> & fish=flocks[i]->getAllFish();
 		
 		for(unsigned int j=0; j<fish.size(); ++j)
@@ -243,7 +243,7 @@ void artSeaApp::createScene(void)
 	flockDirectionFactors.push_back(5);
 	minDistances.push_back(10);
 	frictions.push_back(0.1);
-	visibilities.push_back(30);
+	visibilities.push_back(50);
 
 	//1st flock predator
 	flockCenterFactors.push_back(50);
@@ -257,17 +257,16 @@ void artSeaApp::createScene(void)
 	flockDirectionFactors.push_back(5);
 	minDistances.push_back(5);
 	frictions.push_back(0.1);
-	visibilities.push_back(30);	
+	visibilities.push_back(50);	
 	
-	flocks.push_back(new Flock(50,50,1,5,0.1,30,0,100,10)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
-	flocks.push_back(new Flock(20,50,1,10,0.1,100,100,100,10));
-	flocks.push_back(new Flock(50,50,1,5,0.1,30,-100,100,5));
+	flocks.push_back(new Flock(FIRST_FLOCK_SIZE,50,1,5,0.1,30,0,100,10)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
+	flocks.push_back(new Flock(SECOND_FLOCK_SIZE,50,1,10,0.1,100,100,100,10));
+	flocks.push_back(new Flock(THIRD_FLOCK_SIZE,50,1,5,0.1,30,-100,100,5));
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
 	modelNames.push_back("fish.mesh");
 	
-	visibilities[1]=300;
-	std::vector<Fish*>& predators=flocks[1]->getAllFish();
+	/**std::vector<Fish*>& predators=flocks[1]->getAllFish();
 	for(unsigned int  i=0; i<predators.size(); ++i)
 	{
 		flocks[0]->addPreadator(predators[i]);
@@ -277,7 +276,7 @@ void artSeaApp::createScene(void)
 	for(unsigned int  i=0; i<30; ++i) 
 	{
 		flocks[1]->addVictim(victims[i]);
-	}
+	}*/
 	/**ictims=flocks[2]->getAllFish();
 	for(unsigned int  i=0; i<30; ++i) 
 	{

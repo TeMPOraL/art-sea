@@ -16,7 +16,7 @@ static const int SCREEN_Z=5;*/
 //====================================================
 // Fish
 //====================================================
-void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vector3 direction,float frictionFactor,Ogre::Real deltaT)
+void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vector3 direction,float frictionFactor,Ogre::Real deltaT,Ogre::Camera * camera,float cameraDistance)
 {
 
 	if(howManyVisiblePredators>0) //escaping from the predator
@@ -31,7 +31,8 @@ void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vecto
 		_victimsPos/=howManyVisibleVictims;
 		_myForce=(_victimsPos-_myPosition);
 	}
-	else	//if there is no enemies nearby
+	//else
+	if(_myForce.length()<30)	//if there is no enemies nearb
 	{
 		if(howManyVisibleFriends>0) //see some friends
 		{
@@ -60,6 +61,11 @@ void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vecto
 	{
 				_tooCloseFriendsPosition/=howManyTooCloseFriends;
 				_myForce=-(100*(_tooCloseFriendsPosition-_myPosition));
+	}
+	//ARTSEA_LOG<<"camera"<<cameraDistance<<" "<<camera->getPosition();
+	if(_myPosition.squaredDistance(camera->getPosition())<cameraDistance*cameraDistance)//escaping from camera
+	{
+		_myForce+=300*(_myPosition-camera->getPosition());
 	}
 		friction=frictionFactor*velocity;
 		_myForce.normalise();
@@ -98,13 +104,14 @@ Flock::Flock(unsigned int size,float centerFactor,float resolutionFactor,float d
  
 
 //update all fish based on the friends and enemies seen by him
-void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance, int visibility)
+		  void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance, int visibility, Ogre::Camera * camera, float cameraDistance)
 {
 	_minDistance=minDistance;
 	_centerFactor=centerF;
 	_directionFactor=directionF;
 	_frictionFactor=friction;
 	_flockVisibility=visibility;
+	_cameraDistance=cameraDistance;
 
 	bool isEnemy=false;
 
@@ -130,7 +137,6 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 				if(fish[i]->getPosition().squaredDistance(predators[j]->getPosition())<
 					(_flockVisibility*_flockVisibility))
 				{
-					ARTSEA_LOG<<"widze wroga"<<i;
 					fish[i]->incrementPredators();
 					fish[i]->updatePredatorsPosition(predators[j]->getPosition());
 					isEnemy=true;
@@ -168,7 +174,7 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 				}
 
 			}
-			fish[i]->updateMyPosition(_centerFactor,_directionFactor,direction,_frictionFactor,deltaT);
+			fish[i]->updateMyPosition(_centerFactor,_directionFactor,direction,_frictionFactor,deltaT,camera,cameraDistance);
 		}
 }
 
