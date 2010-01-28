@@ -66,6 +66,10 @@ public:
 	{
 		_predatorsPos+=pos;
 	}
+	void updateVictimsPosition(Ogre::Vector3 pos)
+	{
+		_victimsPos+=pos;
+	}
 	void updateMyPosition(float centerFactor,float directionFactor,Ogre::Vector3 direction,float frictionFactor,Ogre::Real deltaT);
 	void init()
 	{
@@ -73,9 +77,11 @@ public:
 		_tooCloseFriendsPosition=Ogre::Vector3(0,0,0);
 		_friendsDirection=Ogre::Vector3(0,0,0);
 		_predatorsPos=Ogre::Vector3(0,0,0);
+		_victimsPos=Ogre::Vector3(0,0,0);
 		howManyPredators=0;
 		howManyVisibleFriends=0;
 		howManyTooCloseFriends=0;
+		howManyVictims=0;
 	}
 	void incrementVisibleFriends()
 	{
@@ -88,6 +94,10 @@ public:
 	void incrementPredators()
 	{
 		++howManyPredators;
+	}
+	void incrementVictims()
+	{
+		++howManyVictims;
 	}
 
 protected:
@@ -104,6 +114,8 @@ protected:
 	bool isSetMyOwnDirection;
 	Ogre::Vector3 _predatorsPos;
 	int howManyPredators;
+	Ogre::Vector3 _victimsPos;
+	int howManyVictims;
 
 };
 
@@ -127,6 +139,7 @@ public:
 	}
 	void updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float friction,float minDistance,int visibility);
 	void addPreadator(Fish * fish);
+	void addVictim(Fish* fish);
 
 protected:
 	void placeAllFish();
@@ -144,6 +157,7 @@ protected:
 	bool isDirectionSet;
 	std::vector<Fish*>fish;
 	std::vector<Fish*>predators;
+	std::vector<Fish*>victims;
 };
 
 #endif 

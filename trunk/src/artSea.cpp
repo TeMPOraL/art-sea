@@ -208,8 +208,8 @@ void artSeaApp::createScene(void)
 	srand(time(NULL));
 	howManyFlocks=3;
 	flocks.push_back(new Flock(100,50,1,1,0.1,50,0,50,5)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
-	flocks.push_back(new Flock(10,50,1,100,0.1,50,50,50,5));
-	flocks.push_back(new Flock(100,50,1,1,0.1,50,50,50,5));
+	flocks.push_back(new Flock(10,50,1,100,0.1,100,30,50,5));
+	flocks.push_back(new Flock(100,50,1,1,0.1,50,-50,50,5));
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
 	modelNames.push_back("fish.mesh");
@@ -230,6 +230,16 @@ void artSeaApp::createScene(void)
 		flocks[0]->addPreadator(predators[i]);
 		flocks[2]->addPreadator(predators[i]);
 	}
+	std::vector<Fish*>&victims=flocks[0]->getAllFish();
+	for(unsigned int  i=0; i<30; ++i) 
+	{
+		flocks[1]->addVictim(victims[i]);
+	}
+	/**victims=flocks[2]->getAllFish();
+	for(unsigned int  i=0; i<5; ++i) 
+	{
+		flocks[1]->addVictim(victims[i]);
+	}*/
 
 	int counter=0;
 

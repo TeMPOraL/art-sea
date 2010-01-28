@@ -25,6 +25,12 @@ void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vecto
 		_predatorsPos/=howManyPredators;
 		_myForce=-(_predatorsPos-_myPosition);
 	}
+	else if(howManyVictims>0) //going after victims
+	{
+		isSetMyOwnDirection=false;
+		_victimsPos/=howManyVictims;
+		_myForce=(_victimsPos-_myPosition);
+	}
 	else	//if there is no danger
 	{
 		if(howManyVisibleFriends>0) //see some friends
@@ -74,7 +80,7 @@ Flock::Flock(unsigned int size,float centerFactor,float resolutionFactor,float d
 	{
 		int x=terytoryCenter+rand()%(terytorySize)-(terytorySize/2);
 		int y=terytoryCenter+rand()%(terytorySize)-(terytorySize/2);
-		int z=rand()%10-5;
+		int z=rand()%(terytorySize)-(terytorySize/2);
 		Ogre::Vector3 pos=Ogre::Vector3(x,y,z);
 		fish.push_back(new Fish(pos));
 	}
@@ -91,7 +97,7 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 	_frictionFactor=friction;
 	_flockVisibility=visibility;
 
-	bool isEscaping=false;
+	bool isEnemy=false;
 
 		if(_directionFactor>0 && isDirectionSet==false)
 		{
@@ -112,15 +118,25 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 		{
 			for(unsigned int j=0; j<predators.size(); ++j)
 			{
-				if(fish[i]->getPosition().squaredDistance(fish[j]->getPosition())<
+				if(fish[i]->getPosition().squaredDistance(predators[j]->getPosition())<
 					(_flockVisibility*_flockVisibility))
 				{
 					fish[i]->incrementPredators();
 					fish[i]->updatePredatorsPosition(predators[j]->getPosition());
-					isEscaping=true;
+					isEnemy=true;
 				}
 			}
-			if(isEscaping==false)
+			for(unsigned int j=0; j<victims.size(); ++j)
+			{
+				if(fish[i]->getPosition().squaredDistance(victims[j]->getPosition())<
+					(_flockVisibility*_flockVisibility))
+				{
+					fish[i]->incrementVictims();
+					fish[i]->updateVictimsPosition(victims[j]->getPosition());
+					isEnemy=true;
+				}
+			}
+			if(isEnemy==false)
 			{
 				for(unsigned int j=i+1; j<fish.size(); ++j)
 				{
@@ -154,4 +170,9 @@ void Flock::updateAllFish(Ogre::Real deltaT,float centerF,float directionF,float
 void Flock::addPreadator(Fish * fish)
 {
 	predators.push_back(fish);
+}
+
+void Flock::addVictim(Fish* fish)
+{
+	victims.push_back(fish);
 }
