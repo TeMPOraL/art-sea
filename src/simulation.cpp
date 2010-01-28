@@ -19,23 +19,23 @@ static const int SCREEN_Z=5;*/
 void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vector3 direction,float frictionFactor,Ogre::Real deltaT)
 {
 
-	if(howManyPredators>0) //escaping from the predator
+	if(howManyVisiblePredators>0) //escaping from the predator
 	{
-		isSetMyOwnDirection=false;
-		_predatorsPos/=howManyPredators;
+		//isSetMyOwnDirection=false;
+		_predatorsPos/=howManyVisiblePredators;
 		_myForce=-(_predatorsPos-_myPosition);
 	}
-	else if(howManyVictims>0) //going after victims
+	else if(howManyVisibleVictims>0) //going after victims
 	{
-		isSetMyOwnDirection=false;
-		_victimsPos/=howManyVictims;
+		//isSetMyOwnDirection=false;
+		_victimsPos/=howManyVisibleVictims;
 		_myForce=(_victimsPos-_myPosition);
 	}
-	else	//if there is no danger
+	else	//if there is no enemies nearby
 	{
 		if(howManyVisibleFriends>0) //see some friends
 		{
-			isSetMyOwnDirection=false;
+			//isSetMyOwnDirection=false;
 			_friendsPosition/=howManyVisibleFriends;
 			_myForce=centerFactor*(_friendsPosition-_myPosition);
 			_myForce+=directionFactor*direction;
@@ -46,10 +46,14 @@ void Fish::updateMyPosition(float centerFactor,float directionFactor,Ogre::Vecto
 				_myForce=-(100*(_tooCloseFriendsPosition-_myPosition));
 			}
 		}
-		else if(isSetMyOwnDirection==false) //doesn't have any friends; doesn't know wahat to do
+		else   //doesn't have any friends; doesn't know wahat to do
 		{
-			isSetMyOwnDirection=true;
-			_myForce=getRandomVector(1000,1000,50);
+				if(isSetMyOwnDirection==false)
+				{
+					isSetMyOwnDirection=true;
+					_myOwnDirection=getRandomVector(1000,1000,50);
+				}
+				_myForce=_myOwnDirection;
 		}
 	}
 		friction=frictionFactor*velocity;
