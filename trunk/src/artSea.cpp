@@ -161,18 +161,40 @@ void artSeaApp::updateWorld(Real deltaT)
 	ARTSEA_GUARD(artSeaApp::updateWorld);
 
 	ARTSEA_ASSERT(deltaT >= 0, "Negative deltaT."); 
-	
+	std::vector<Ogre::Vector3> oldPos;
 	unsigned int counter=0;
 	for(int i=0; i<howManyFlocks; ++i)
 	{
 		flocks[i]->updateAllFish(deltaT,flockCenterFactors[i],flockDirectionFactors[i],frictions[i],minDistances[i],visibilities[i]);
 		std::vector<Fish*> & fish=flocks[i]->getAllFish();
+		
 		for(unsigned int j=0; j<fish.size(); ++j)
 		{
+			oldPos.push_back(fishNodes[counter]->getPosition());
 			fishNodes[counter]->setPosition(fish[j]->getPosition());
 			++counter;
 		}
 	}
+	for(unsigned int i=0; i<fishNodes.size(); ++i)
+		{
+			Ogre::Vector3 orientation=fishNodes[i]->getOrientation()*Ogre::Vector3(-1,0,0);//*(-1*Ogre::Vector3::UNIT_SCALE); // unit_x the direction of the fish naturally faces
+			Ogre::Vector3 direction=fishNodes[i]->getPosition()-oldPos[i];
+			if ((1.0f + orientation.dotProduct(direction)) < 0.0001f) 
+			{
+			   fishNodes[i]->yaw(Degree(180));
+			}
+			else
+			{
+				Ogre::Quaternion quat=orientation.getRotationTo(direction);
+				fishNodes[i]->rotate(quat);
+			}
+			
+			//set new position
+			//fishNodes[i]->setPosition(newPositions[i]);
+
+			//fishNodes[i]->translate(direction);
+
+		}
 	
 
 	/**ourWorld->updateAllFish(deltaT,flockDirectionFactors,resolutionFactors,flockCenterFactors,frictions,cameraFactors, mCamera); 
@@ -214,9 +236,9 @@ void artSeaApp::createScene(void)
 	//simulation 
 	srand(time(NULL));
 	howManyFlocks=3;
-	flocks.push_back(new Flock(100,50,1,1,0.1,50,0,50,5)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
-	flocks.push_back(new Flock(10,50,1,100,0.1,100,30,50,5));
-	flocks.push_back(new Flock(100,50,1,1,0.1,50,-50,50,5));
+	flocks.push_back(new Flock(50,50,1,1,0.1,50,0,100,5)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
+	flocks.push_back(new Flock(20,50,1,100,0.1,300,30,100,5));
+	flocks.push_back(new Flock(50,50,1,1,0.1,50,-50,100,5));
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
 	modelNames.push_back("fish.mesh");

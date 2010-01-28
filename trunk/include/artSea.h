@@ -34,7 +34,7 @@ LGPL like the rest of the OGRE engine.
 
 //#include <Hydrax/Hydrax.h>
 
-//[snd] #include <FMOD.hpp>
+#include <FMOD.hpp>
 
 #include <TwOgre.h>
 #include "ergoTwGui.h"
@@ -183,7 +183,7 @@ private:
 	int howManyFlocks;
 
 	//sound stuff
-	//[snd] FMOD::System* soundSystem;
+	FMOD::System* soundSystem;
 
 };
 

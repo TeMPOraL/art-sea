@@ -78,10 +78,10 @@ public:
 		_friendsDirection=Ogre::Vector3(0,0,0);
 		_predatorsPos=Ogre::Vector3(0,0,0);
 		_victimsPos=Ogre::Vector3(0,0,0);
-		howManyPredators=0;
+		howManyVisiblePredators=0;
 		howManyVisibleFriends=0;
 		howManyTooCloseFriends=0;
-		howManyVictims=0;
+		howManyVisibleVictims=0;
 	}
 	void incrementVisibleFriends()
 	{
@@ -93,11 +93,11 @@ public:
 	}
 	void incrementPredators()
 	{
-		++howManyPredators;
+		++howManyVisiblePredators;
 	}
 	void incrementVictims()
 	{
-		++howManyVictims;
+		++howManyVisibleVictims;
 	}
 
 protected:
@@ -113,9 +113,9 @@ protected:
 	Ogre::Vector3 _myOwnDirection;
 	bool isSetMyOwnDirection;
 	Ogre::Vector3 _predatorsPos;
-	int howManyPredators;
+	int howManyVisiblePredators;
 	Ogre::Vector3 _victimsPos;
-	int howManyVictims;
+	int howManyVisibleVictims;
 
 };
 
