@@ -44,7 +44,7 @@ LGPL like the rest of the OGRE engine.
 #include "Debug.h"
 
 #include<stdio.h>
-//[snd] #include <FMOD.hpp>
+ #include <FMOD.hpp>
 #include "lexical_cast.h"
 #include "simulation.h"
 
@@ -52,14 +52,14 @@ static const Real DEFAULT_FIXED_STEP_SIMULATION_RATE = 0.030;	//30 msec pause
 static const Real DEFAULT_FIXED_STEP_SIMULATION_DT_MAX = 0.25;	//default max for deltaT
 static const Real DEFAULT_FIXED_STEP_SIMULATION_MAX_UPDATES_PER_FRAME = 30.0;	//default max for simulations per frame
 static const Real MINIMUM_SIMULATION_STEPS_PER_SECOND = 0.00001;
-static const Real DEFAULT_TIMESCALE = 1.0;
+static const Real DEFAULT_TIMESCALE = 2.0;
 static const Real DEFAULT_FIXED_STEPS_PER_SECOND = 30.0;
 static const Real DEFAULT_NEAR_CLIPPING_DISTANCE = 0.1;
 static const Real DEFAULT_FAR_CLIPPING_DISTANCE = 10000.0;
 static const int FIRST_FLOCK_SIZE=400;
 static const int SECOND_FLOCK_SIZE=30;
 static const int THIRD_FLOCK_SIZE=50;
-static const int FOURTH_FLOCK_SIZE=100;
+static const int FOURTH_FLOCK_SIZE=1;
 
 
 //-------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ artSeaApp::artSeaApp(void)
 	nearClippingDistance = DEFAULT_NEAR_CLIPPING_DISTANCE;
 	farClippingDistance = DEFAULT_FAR_CLIPPING_DISTANCE;
 
-	//[snd] soundSystem = NULL;
+	 soundSystem = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ artSeaApp::~artSeaApp(void)
 
 	delete tweakBarSupervisor;
 
-	//[snd] soundSystem->release();
+	 soundSystem->release();
 }
 
 //================================================================
@@ -112,7 +112,7 @@ bool artSeaApp::frameStarted(const FrameEvent& evt)
 	mCamera->setNearClipDistance(nearClippingDistance);
 	mCamera->setFarClipDistance(farClippingDistance);
 
-	//[snd] soundSystem->update();
+	 soundSystem->update();
 
 	return (result && true);
 }
@@ -249,7 +249,7 @@ void artSeaApp::createScene(void)
 
 	//2st flock predator
 	flockCenterFactors.push_back(50);
-	flockDirectionFactors.push_back(10);
+	flockDirectionFactors.push_back(0);
 	minDistances.push_back(10);
 	frictions.push_back(0.1);
 	visibilities.push_back(100);
@@ -257,29 +257,29 @@ void artSeaApp::createScene(void)
 
 	//3st flock
 	flockCenterFactors.push_back(50);
-	flockDirectionFactors.push_back(5);
+	flockDirectionFactors.push_back(0);
 	minDistances.push_back(5);
 	frictions.push_back(0.1);
 	visibilities.push_back(50);	
-	cameraDistances.push_back(60);\
+	cameraDistances.push_back(60);
 
 	//4st flock
 	flockCenterFactors.push_back(10);
-	flockDirectionFactors.push_back(50);
+	flockDirectionFactors.push_back(5);
 	minDistances.push_back(10);
 	frictions.push_back(0.1);
 	visibilities.push_back(30);	
 	cameraDistances.push_back(30);
 	
-	flocks.push_back(new Flock(FIRST_FLOCK_SIZE,50,1,5,0.1,30,-100,100,10)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
-	flocks.push_back(new Flock(SECOND_FLOCK_SIZE,50,1,10,0.1,100,200,100,10));
+	flocks.push_back(new Flock(FIRST_FLOCK_SIZE,50,1,0,0.1,30,-100,100,10)); //Flock(size,centerFactor,resFactor,dirFactor,friction,visibility,terytory ceer,teritory size,distance
+	flocks.push_back(new Flock(SECOND_FLOCK_SIZE,50,1,0,0.1,100,-200,100,10));
 	flocks.push_back(new Flock(THIRD_FLOCK_SIZE,50,1,5,0.1,30,-100,100,5));
 	flocks.push_back(new Flock(FOURTH_FLOCK_SIZE,flockCenterFactors[3],1,flockDirectionFactors[3],frictions[3],visibilities[3],0,200,minDistances[3]));
 
 	modelNames.push_back("fish.mesh");
 	modelNames.push_back("rybka.mesh");
-	modelNames.push_back("fish.mesh");
-	modelNames.push_back("rybka.mesh");
+	modelNames.push_back("manta.mesh");
+	modelNames.push_back("humback.mesh");
 	
 	std::vector<Fish*>& predators=flocks[1]->getAllFish();
 	for(unsigned int  i=0; i<predators.size(); ++i)
@@ -471,27 +471,27 @@ Avoid getting far distance < near distance - may cause III World War, or worse."
 	mSceneMgr->setSkyBox(true, "artSea/SkyBox");
 
 	//sound init
-	//[snd] FMOD_RESULT res = FMOD::System_Create(&soundSystem);
-	//[snd] if(res != FMOD_OK)
-	//[snd] {
-	//[snd] 	throw std::runtime_error( "Failed to create sound system.");
-	//[snd] }
-	//[snd] res = soundSystem->init(10, FMOD_INIT_NORMAL, NULL);
+	 FMOD_RESULT res = FMOD::System_Create(&soundSystem);
+	 if(res != FMOD_OK)
+	 {
+	 	throw std::runtime_error( "Failed to create sound system.");
+	 }
+	 res = soundSystem->init(10, FMOD_INIT_NORMAL, NULL);
 
-	//[snd] if(res != FMOD_OK)
-	//[snd] {
-	//[snd] 	throw std::runtime_error("Failed to initialize sound system.");
-	//[snd] }
+	 if(res != FMOD_OK)
+	 {
+	 	throw std::runtime_error("Failed to initialize sound system.");
+	 }
 
-	//[snd] FMOD::Sound* sound;
-	//[snd] res = soundSystem->createStream("../../media/music.mp3", FMOD_DEFAULT | FMOD_LOOP_NORMAL, NULL, &sound);
+	 FMOD::Sound* sound;
+	 res = soundSystem->createStream("../../media/music.mp3", FMOD_DEFAULT | FMOD_LOOP_NORMAL, NULL, &sound);
 
-	//[snd] if(res != FMOD_OK)
-	//[snd] {
-	//[snd] 	throw std::runtime_error("Failed to load music.");
-	//[snd] }
+	 if(res != FMOD_OK)
+	 {
+	 	throw std::runtime_error("Failed to load music.");
+	 }
 
-	//[snd] soundSystem->playSound(FMOD_CHANNEL_FREE, sound, false, NULL);
+	 soundSystem->playSound(FMOD_CHANNEL_FREE, sound, false, NULL);
 
 }
 
